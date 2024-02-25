@@ -1,0 +1,3 @@
+enum Config {
+	NewAssigment = 'q',
+};
