@@ -1,2 +1,4 @@
 makefile
 a.out
+/src/a.out
+/src/makefile
