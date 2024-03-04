@@ -11,8 +11,22 @@
 void drawScreen() {
 	// Vector and string libaries are already included in getTasks.h.
 	std::vector<std::string> tasks = getTasks();
+	
+	initscr();
+	clear();
+	refresh();
+	printw("AAAAAAAAAA");
+	
+	return;
 	for (int i = 0; i < tasks.size(); i++) {
 		const char *task = tasks[i].c_str();
-		mvprintw(i, 0, task); 
+		
+		printw("AAAAAAAAAAA");
+		refresh();
+		continue;
+
+		refresh();
+		printw(task);
+		refresh();
 	}
 }

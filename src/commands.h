@@ -37,4 +37,4 @@ public: void initializeCommand() override {
 			const char * taskName = getTaskName().c_str();
 			// Something for ptinting in the painter.h header. 
 		}
-}
+
