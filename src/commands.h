@@ -2,6 +2,8 @@
 #include <iostream> // For ExitCommand.
 #include <string>
 
+#define ENTER_KEY 10
+
 class Command {
 public: virtual void initializeCommand() {
 		return; // Method for overriding.
@@ -14,27 +16,4 @@ public: void initializeCommand() override {
 			exit(0);
 		}
 };
-
-class CreateTask : public Command {
-private: std::string getTaskName() {
-			std::string taskName;
-			
-			char keyPressed;
-
-			// 10 is for enter, KEY_ENTER did not work for some reason.
-			while (keyPressed != 10) {
-				keyPressed = getch();
-				if (keyPressed == 10) break;
-
-				taskName += keyPressed;
-				refresh();
-			}
-
-			return taskName;
-		 }
-
-public: void initializeCommand() override {
-			const char * taskName = getTaskName().c_str();
-			// Something for ptinting in the painter.h header. 
-		}
 
