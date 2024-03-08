@@ -1,63 +1,40 @@
-#include <ncurses.h>
-#include <string>
-#include <vector>
-#include <fstream>
-#include <iostream>
+#include "renderer.h"
 
-class Renderer {
-	private: std::vector<std::string> get_tasks() {
-	  	std::ifstream data("../data/savedData.txt");
-	
-		std::vector<std::string> tasks;
-		while (!data.eof()) {
-			std::string temp;
-			getline(data, temp);
-			if (temp.length() == 0) continue;
-
-			tasks.push_back(temp);
-		}
-
-		return tasks;
-	}
-
-	public: void render_tasks() {
-		std::vector<std::string> tasks = get_tasks();
-		
-		if (tasks.empty()) {
-			printw("NO TASKS");
-			return;
-		}
-		
-		clear();
-		for (int i = 0; i < tasks.size(); i++) {
-			tasks[i] = std::to_string(i + 1) + '.' + tasks[i];
-			mvprintw(i, 0, tasks[i].c_str());
-			refresh();
-		}
-
-		refresh();
-	}
-
-	public: void render_test() {
-		printw("RENDERING TEST");	
-	}
-};
+// commands.h header abstraction
+Command commands;
 
 void main_loop() {
 	Renderer renderer;
-
+	
+	std::string current_command;
 	while (true) {
 		refresh();
-		renderer.render_tasks();
 		char ch = getch();
+
+		if (ch != ENTER_KEY) {
+			current_command += ch;
+			continue;
+		}
+		
+		try {
+			commands.key_layout[current_command];	
+		} catch (...) {
+			mvprintw(80, 0, ("No command named: " + current_command).c_str());
+		}
 	}
 }
 
 int main() {
+
+	// Window setup for ncurses
 	initscr();
-	keypad(stdscr, true);
-	clear();
+	keypad(stdscr, TRUE);
+	noecho();
+	cbreak();
 	refresh();
+	
+	// Setting up the commands
+	commands.key_layout["q"] = new ExitCommand();
 
 	main_loop();
 
