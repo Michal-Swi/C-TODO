@@ -1,27 +1,14 @@
 #include "renderer.h"
+#include <ncurses.h>
 
 // commands.h header abstraction
 Command commands;
 
 void main_loop() {
 	Renderer renderer;
-	
-	std::string current_command;
-	while (true) {
-		refresh();
-		char ch = getch();
-
-		if (ch != ENTER_KEY) {
-			current_command += ch;
-			continue;
-		}
-		
-		try {
-			commands.key_layout[current_command];	
-		} catch (...) {
-			mvprintw(80, 0, ("No command named: " + current_command).c_str());
-		}
-	}
+	renderer.render_user_text();	
+	refresh();
+	while (1);
 }
 
 int main() {

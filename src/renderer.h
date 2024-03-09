@@ -1,3 +1,4 @@
+#include <ios>
 #include <ncurses.h>
 #include <string>
 #include <vector>
@@ -5,8 +6,8 @@
 #include "commands.h"
 
 class Renderer {
-	private: std::vector<std::string> get_tasks() {
-	  	std::ifstream data("../data/savedData.txt");
+	private: std::vector<std::string> get_headers() {
+	  	std::ifstream data("../data/headers.txt");
 	
 		std::vector<std::string> tasks;
 		while (!data.eof()) {
@@ -20,8 +21,8 @@ class Renderer {
 		return tasks;
 	}
 
-	public: void render_tasks() {
-		std::vector<std::string> tasks = get_tasks();
+	public: void render_headers() {
+		std::vector<std::string> tasks = get_headers();
 		
 		if (tasks.empty()) {
 			printw("NO TASKS");
@@ -36,10 +37,41 @@ class Renderer {
 		}
 
 		refresh();
+	}	
+	
+	private: std::string get_text() {
+		std::string text;
+		
+		char ch;
+		while (ch != ENTER_KEY) {
+			ch = getch();
+			if (ch == ENTER_KEY and text.empty()) ch = 'p'; // Something different 
+															// from ENTER_KEY so that
+															// the loop continues
+			else if (ch != ENTER_KEY) {
+				text += ch;
+				addch(ch);
+			}
+		}
+
+		int y, x;
+		getyx(stdscr, y, x);
+		
+		move(y, 0); // Moves to the start of the line to clear it
+		clrtoeol(); // Clears the line from addch();
+		refresh();
+
+		return text;
 	}
 
-	public: void render_test() {
-		printw("RENDERING TEST");	
+	// Outputs text written by user
+	public: void render_user_text() {
+		std::string user_text = get_text();
+		
+		std::fstream headers;
+		headers.open("../data/headers.txt", std::ios_base::app);
+
+		printw(user_text.c_str());
 	}
 };
 
