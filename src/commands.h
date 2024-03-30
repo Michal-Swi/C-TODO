@@ -11,16 +11,20 @@
 #include "definitions.h"
 
 class Command {
-	public: void add_character_to_header(std::string &header, char ch) {
+	public: void add_character_to_header
+			(std::string &header, char ch, bool &move_to_previous_position) {
 				int x, y;
 				getyx(stdscr, y, x);
 				
 				if (x == header.length()) {
 					header += ch;
+					move_to_previous_position = false;
 					return;
 				}
 
 				try {
+					move_to_previous_position = true;
+
 					std::string s;
 					s += ch;
 
@@ -42,7 +46,7 @@ class Command {
 				}
 			}
 
-	public: void print_line(std::string str) {
+	public: void print_line(std::string str, bool move_to_previous_position) {
 				int y, x;
 				getyx(stdscr, y, x);
 				move(y, x - 1);
@@ -53,6 +57,8 @@ class Command {
 				refresh();
 				printw(str.c_str());
 				refresh();
+
+				if (move_to_previous_position) move(y, x + 1);
 			 }
 
 	private: static std::vector<std::string> headers;
@@ -197,20 +203,21 @@ class AddNewHeaderCommand : public Command {
 											// new line we just exit
 			if (int(ch) != BACKSPACE_KEY) header_name = ch;
 			
-			print_line(header_name);
+			print_line(header_name, false);
 
 			while (ch != ENTER_KEY) {
 				char ch = getch();
+				bool move_to_previous_position = false;
 
 				if (ch == ENTER_KEY) return header_name;
 				else if (ch == BACKSPACE_KEY) {
 					delete_character(header_name);
-					print_line(header_name);
+					print_line(header_name, false);
 					continue;	
 				} else if (ch == ARROW_LEFT) {
 					int x, y;
 					getyx(stdscr, y, x);
-					
+
 					move(y, x - 1);
 					continue;
 				} else if (ch == ARROW_RIGHT) {
@@ -223,8 +230,8 @@ class AddNewHeaderCommand : public Command {
 					continue;
 				}
 
-				add_character_to_header(header_name, ch);
-				print_line(header_name);
+				add_character_to_header(header_name, ch, move_to_previous_position);
+				print_line(header_name, move_to_previous_position);
 			}
 
 			return ""; // Done just for LSP purposes
