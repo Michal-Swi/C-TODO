@@ -1,21 +1,17 @@
 #include "renderer.h"
 #include <ncurses.h>
 
-// commands.h abstraction with command hash map 
+// Header abstraction import
+
 KeyLayout keys;
 Renderer renderer;
 Command commands;
 
-void initialize_commands() {
-	keys.map_key_layout();	
-}
-
 void main_loop() {
 	while (true) {
-		char ch = getch();
-		keys.execute_command(std::to_string(ch));
-		
-		if (commands.edit_mode) std::string command = commands.get_command();
+		renderer.render_headers(commands.get_headers());
+		std::string command = commands.get_command();
+		keys.execute_command(command);
 	}
 }
 
@@ -24,11 +20,14 @@ int main() {
 	initscr();
 	keypad(stdscr, TRUE);
 	refresh();
+	noecho();
+	commands.read_headers();
 	
 	main_loop();
 
 	endwin();
 	
+
     return 0;
 }
 

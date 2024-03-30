@@ -1,0 +1,8 @@
+enum Keys {
+	BACKSPACE_KEY = 7,
+	ENTER_KEY = 10,
+	ARROW_UP = 3,
+	ARROW_DOWN = 2,
+	ARROW_LEFT = 4,
+	ARROW_RIGHT = 5,
+};
