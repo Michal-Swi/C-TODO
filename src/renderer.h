@@ -3,22 +3,30 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include "commands.h"
+#include <algorithm>
+#include "edit_mode.h"
 
 class Renderer {
 	public: void render_headers(std::vector<std::string> tasks) {
-		
+		int x, y;
+		getyx(stdscr, y, x);
+
 		if (tasks.empty()) {
 			printw("NO TASKS");
 			return;
 		}
+			
+		clear();
 		
-		for (int i = 0; i < tasks.size(); i++) {
+		for (int i = 0; i <std::min(10, Command::get_headers_size()) ; i++) {
 			tasks[i] = std::to_string(i + 1) + '.' + tasks[i];
 			mvprintw(i, 0, tasks[i].c_str());
 			refresh();
 		}
-
+		
+		if (Command::get_headers_size() > 10) printw("\nPress n to render next page");
+		
+		move(y, x);
 		refresh();
 	}	
 	

@@ -11,6 +11,52 @@
 #include "definitions.h"
 
 class Command {
+	private: static std::vector<std::string> headers;
+
+	public: static void read_headers() {
+	  	std::ifstream data("../data/headers.txt");
+	
+		while (!data.eof()) {
+			std::string temp;
+			getline(data, temp);
+			if (temp.length() == 0) continue;
+
+			headers.push_back(temp);
+		}
+	}
+
+	public: static std::string get_header(int i) {
+				try {
+					return headers[i];
+				} catch(...) {
+					return "";
+				}
+			}
+
+	public: static void add_to_headers(std::string header) {
+				headers.push_back(header);
+			}
+
+	public: static std::vector<std::string> get_headers() {
+				return headers;
+			}
+	
+	public: static std::string get_last_header() {
+				return headers[headers.size() - 1];
+			}
+
+	public: static int get_headers_size() {
+				return headers.size();
+			}
+
+	public: static void save_headers() {
+				std::ofstream out("../data/headers.txt");
+
+				for (int i = 0; i < headers.size(); i++) {
+					out << headers[i] << "\n";
+				}
+			}
+	
 	public: void add_character_to_header
 			(std::string &header, char ch, bool &move_to_previous_position) {
 				int x, y;
@@ -53,48 +99,11 @@ class Command {
 				clrtoeol();
 				refresh();
 				move(y, 0);
-
-				refresh();
 				printw(str.c_str());
 				refresh();
 
 				if (move_to_previous_position) move(y, x + 1);
 			 }
-
-	private: static std::vector<std::string> headers;
-
-	public: static void read_headers() {
-	  	std::ifstream data("../data/headers.txt");
-	
-		while (!data.eof()) {
-			std::string temp;
-			getline(data, temp);
-			if (temp.length() == 0) continue;
-
-			headers.push_back(temp);
-		}
-	}
-	
-	public: static void add_to_headers(std::string header) {
-				headers.push_back(header);
-			}
-
-	public: static std::vector<std::string> get_headers() {
-				return headers;
-			}
-	
-	public: static std::string get_last_header() {
-				return headers[headers.size() - 1];
-			}
-
-	public: static void save_headers() {
-				std::ofstream out("../data/headers.txt");
-
-				for (int i = 0; i < headers.size(); i++) {
-					out << headers[i] << "\n";
-				}
-			}
-
 	public: std::string get_command() {
 			std::string command;
 
@@ -172,7 +181,7 @@ class Command {
 		 }
 };
 
-bool Command::edit_mode = true;
+bool Command::edit_mode = false;
 std::string Command::current_command = "";
 std::vector<std::string> Command::headers;
 
@@ -186,16 +195,19 @@ class ExitCommand : public Command {
 
 class EditModeCommand : public Command {
 	public:  void initialize_command() override {
-			edit_mode = true;	
+			edit_mode ? edit_mode = false : edit_mode = true;	
+			edit_mode ? printw("Edit mode is on") : printw("Edit mode is off");
 			// When edit mode is set, tasks
 			// are to be edited freerly
+			
+			move(0, 2);
 		}
 };
 
 class AddNewHeaderCommand : public Command {
 	private: std::string get_header_name() {
 			std::string header_name;
-
+			
 			char ch;
 			ch = getch();
 			
@@ -244,35 +256,4 @@ class AddNewHeaderCommand : public Command {
 			
 			add_to_headers(header_name);
 		}
-};
-
-class KeyLayout {
-	public: ~KeyLayout() {}
-
-	public: std::map<std::string, Command*> key_layout; 
-
-	public: void execute_command(std::string command) {
-			if (!(key_layout.count(command) > 0)) {
-				int current_y, current_x;
-				 getyx(stdscr, current_y, current_x);
-
-				int max_y;
-				max_y = getmaxy(stdscr);
-
-				move(max_y - 1, 0);
-				printw("Invalid command!");
-				refresh();
-
-			} else {
-				key_layout[command]->initialize_command();	
-			}
-		}
-
-	// Constructor assigning the classes to keys
-	public: KeyLayout() {
-			// Assigning is temporary for development purposes only! Change later! 
-			
-			key_layout["qu"] = new ExitCommand();
-			key_layout["a"] = new AddNewHeaderCommand();
-		}	
 };
