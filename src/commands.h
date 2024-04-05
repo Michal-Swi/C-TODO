@@ -40,7 +40,11 @@ class Command {
 	public: static std::vector<std::string> get_headers() {
 				return headers;
 			}
-	
+
+	public: static void change_header(int &i, std::string &header) {
+				headers[i] = header;
+			}
+
 	public: static std::string get_last_header() {
 				return headers[headers.size() - 1];
 			}

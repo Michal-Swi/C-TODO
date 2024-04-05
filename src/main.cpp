@@ -11,7 +11,7 @@ void main_loop() {
 		renderer.render_headers(commands.get_headers());
 		if (commands.edit_mode) {
 			char ch = getch();
-			edit_mode.initialize_command(ch, edit_mode.get_current_header());
+			edit_mode.initialize_command(ch); 
 		} else {
 			std::string command = commands.get_command();
 			keys.execute_command(command);

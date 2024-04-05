@@ -1,3 +1,4 @@
+#include <csignal>
 #include <ios>
 #include <ncurses.h>
 #include <stdexcept>
@@ -5,34 +6,39 @@
 #include "key_layout.h"
 
 class EditMode {
-	private: void add_to_header(std::string &header, int &x, char &ch) {
-				std::string s = std::to_string(ch);
-				header.insert(x, s);	
-			 }
-
-	public: std::string get_current_header() {
+	private: std::string get_current_header() {
 				int x, y;
 				getyx(stdscr, y, x);
 
 				return Command::get_header(y);
 			}
 
-	private: bool move_in_range(std::string &header, int &x, int &y) {
+	private: void different_action(int &x, char &ch) {
+				
+			 }
+	
+	private: bool move_in_y_direction(int &y, int &previous_y) {
+				return y != previous_y;
+			 }
+
+	private: bool move_in_range(int &x, int &y) {
 				if (y < 0) return false;
-				if (y > 9 or y > Command::get_headers_size()) return false;
-				if (x < 2 or x > header.length()) return false;
+				if (y > 9 or y >= Command::get_headers_size()) return false;
+				if (x - 2 >= Command::get_header(y).length()) return false;
 
 				return true;
 			 }
 
-	public: void initialize_command(char &ch, std::string header) {
+	public: void initialize_command(char &ch) {
 		int x, y;
 		getyx(stdscr, y, x);
 
 		if (ch < 2 or ch > 5) {
-			add_to_header(header, x, ch);
+			different_action(x, ch);
 		} 
 		
+		int previous_x = x, previous_y = y;
+
 		// Just the movement keys left	
 		switch (ch) {
 			case ARROW_LEFT:
@@ -49,14 +55,6 @@ class EditMode {
 				break;
 		}
 		
-		if (move_in_range(header, x, y)) {
-			try {
-				move(y, x);
-			} catch (...) {
-				return;
-			}
-		}
-
-		refresh();
+		if (move_in_y_direction(y, previous_y));
 	}
 };
