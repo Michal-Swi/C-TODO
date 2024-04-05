@@ -55,6 +55,8 @@ class EditMode {
 				break;
 		}
 		
+		// Moves in y direction are legal even when
+		// the length of two headers is different
 		if (move_in_y_direction(y, previous_y));
 	}
 };
