@@ -13,6 +13,8 @@ void main_loop() {
 
 		if (commands.edit_mode) {
 			char ch = getch();
+			if (ch == ':') { keys.execute_command(":"); continue; }
+				 
 			edit_mode.initialize_command(ch); 
 		} else {
 			Command::set_current_command(commands.get_command());

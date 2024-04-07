@@ -8,7 +8,9 @@
 
 class Renderer {
 	public: void render_headers
-			(std::vector<std::string> tasks, std::string current_command) {
+			(std::vector<std::string> tasks, 
+			 std::string current_command) {
+		
 		int x, y;
 		getyx(stdscr, y, x);
 

@@ -1,13 +1,12 @@
 #include <algorithm>
 #include <ncurses.h>
 #include <cstdlib> // For ExitCommand.
-#include <string>
 #include <map>
 #include <fstream>
 #include <vector>
 #include <regex>
 #include <tuple>
-#include <vector>
+#include "headers.h"
 #include "definitions.h"
 
 class Command {
@@ -209,7 +208,13 @@ class ExitCommand : public Command {
 class EditModeCommand : public Command {
 	public:  void initialize_command() override {
 			edit_mode ? edit_mode = false : edit_mode = true;	
-			edit_mode ? printw("Edit mode is on") : printw("Edit mode is off");
+			
+			std::string message = "Edit mode is ";
+			if (edit_mode) message += "on";
+			else message += "off";
+			
+			Command::set_current_command(message);
+
 			// When edit mode is set, tasks
 			// are to be edited freerly
 			
