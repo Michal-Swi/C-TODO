@@ -123,13 +123,13 @@ class Command {
 
 			ch = getch();
 			clrtoeol();
-
+	
 			if (ch == ENTER_KEY) {
-				printw("Invalid command!");
 				move(current_y + 1, 0);
 				refresh();
 
-				return "";
+				return "Invalid command!"; // Later in main this will be set as
+										  // Command::current_command
 			}
 			
 			addch(ch);
@@ -148,6 +148,7 @@ class Command {
 				addch(ch);
 				refresh();
 			}
+			
 			return "";
 		}
 
@@ -155,7 +156,15 @@ class Command {
 
 	public: static bool edit_mode;
 
-	public: static std::string current_command;
+	private: static std::string current_command;
+	
+	public: static std::string get_current_command() {
+				return current_command;
+			}
+	
+	public: static void set_current_command(std::string new_current_command) {
+				current_command = new_current_command;
+			}
 
 	public: virtual void initialize_command() {
 			return; // Method for overriding.
@@ -212,6 +221,11 @@ class AddNewHeaderCommand : public Command {
 	private: std::string get_header_name() {
 			std::string header_name;
 			
+			int max_y, max_x;
+			getmaxyx(stdscr, max_y, max_x);
+			move(max_y - 1, 0);
+			clrtoeol();
+
 			char ch;
 			ch = getch();
 			

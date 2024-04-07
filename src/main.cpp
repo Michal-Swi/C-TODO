@@ -8,13 +8,15 @@ Command commands;
 
 void main_loop() {
 	while (true) {
-		renderer.render_headers(commands.get_headers());
+		renderer.render_headers
+			(commands.get_headers(), Command::get_current_command());
+
 		if (commands.edit_mode) {
 			char ch = getch();
 			edit_mode.initialize_command(ch); 
 		} else {
-			std::string command = commands.get_command();
-			keys.execute_command(command);
+			Command::set_current_command(commands.get_command());
+			keys.execute_command(Command::get_current_command());
 		}
 	}
 }
@@ -30,8 +32,6 @@ int main() {
 	main_loop();
 
 	endwin();
-	
 
     return 0;
 }
-

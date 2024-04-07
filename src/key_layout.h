@@ -14,8 +14,8 @@ class KeyLayout {
 				max_y = getmaxy(stdscr);
 
 				move(max_y - 1, 0);
-				printw("Invalid command!");
-				refresh();
+
+				Command::set_current_command("Invalid command!");
 
 			} else {
 				key_layout[command]->initialize_command();	

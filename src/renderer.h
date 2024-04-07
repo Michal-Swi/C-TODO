@@ -7,7 +7,8 @@
 #include "edit_mode.h"
 
 class Renderer {
-	public: void render_headers(std::vector<std::string> tasks) {
+	public: void render_headers
+			(std::vector<std::string> tasks, std::string current_command) {
 		int x, y;
 		getyx(stdscr, y, x);
 
@@ -26,6 +27,12 @@ class Renderer {
 		
 		if (Command::get_headers_size() > 10) printw("\nPress n to render next page");
 		
+		int max_y, max_x;
+		getmaxyx(stdscr, max_y, max_x);
+
+		move(max_y - 1, 0);
+		printw(Command::get_current_command().c_str());
+
 		move(y, x);
 		refresh();
 	}	
