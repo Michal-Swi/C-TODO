@@ -10,56 +10,6 @@
 #include "definitions.h"
 
 class Command {
-	private: static std::vector<std::string> headers;
-
-	public: static void read_headers() {
-	  	std::ifstream data("../data/headers.txt");
-	
-		while (!data.eof()) {
-			std::string temp;
-			getline(data, temp);
-			if (temp.length() == 0) continue;
-
-			headers.push_back(temp);
-		}
-	}
-
-	public: static std::string get_header(int i) {
-				try {
-					return headers[i];
-				} catch(...) {
-					return "";
-				}
-			}
-
-	public: static void add_to_headers(std::string header) {
-				headers.push_back(header);
-			}
-
-	public: static std::vector<std::string> get_headers() {
-				return headers;
-			}
-
-	public: static void change_header(int &i, std::string &header) {
-				headers[i] = header;
-			}
-
-	public: static std::string get_last_header() {
-				return headers[headers.size() - 1];
-			}
-
-	public: static int get_headers_size() {
-				return headers.size();
-			}
-
-	public: static void save_headers() {
-				std::ofstream out("../data/headers.txt");
-
-				for (int i = 0; i < headers.size(); i++) {
-					out << headers[i] << "\n";
-				}
-			}
-	
 	public: void add_character_to_header
 			(std::string &header, char ch, bool &move_to_previous_position) {
 				int x, y;

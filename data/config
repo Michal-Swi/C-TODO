@@ -1,2 +1,2 @@
-quitButton: q
-commandMode: :
+exit_command: q
+command_mode: :
