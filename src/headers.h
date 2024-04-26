@@ -6,12 +6,18 @@ class Header {
 	private:
 		std::string header_name;
 		int completion_level;
-		
-		std::vector<std::string> children; // Holds the names of the headers "below" 
-		
-		std::string parent; // Hold the name of the header above, empty if it is 
-						 // the most above one
-						
+		std::string path_to_parent;
+		std::vector<std::string> paths_to_children;
+		std::string path_to_header;
+	
+	public: void set_path_to_header(std::string path_to_header) {
+				this->path_to_header = path_to_header;
+			}
+
+	public: std::string get_path_to_header() {
+				return path_to_header;
+			}
+
 	public: void set_header_name(std::string header_name) {
 				this->header_name = header_name;
 			}
@@ -28,30 +34,35 @@ class Header {
 				return completion_level;
 			}
 	
-	public: void insert_child(std::string child) {
-				children.push_back(child);
+	public: void insert_path_to_child(std::string path_to_child) {
+				paths_to_children.push_back(path_to_child);
 			}
 
-	public: void insert_children(std::vector<std::string> children) {
-				this->children = children;
+	public: void insert_paths_to_children(std::vector<std::string> paths_to_children) {
+				this->paths_to_children = paths_to_children;
 			}
 
-	public: std::vector<std::string> get_children() {
-				return children;
+	public: std::vector<std::string> get_paths_to_children() {
+				return paths_to_children;
 			}
 
-	public: void set_parent(std::string parent) {
-				this->parent = parent;
+	public: void set_path_to_parent(std::string path_to_parent) {
+				this->path_to_parent = path_to_parent;
 			}
 
-	public: std::string get_parent() {
-				return parent;
+	public: std::string get_path_to_parent() {
+				return path_to_parent;
 			}
 };
 
 class HeaderBuilder {
 	private: Header header;
 	
+	public: HeaderBuilder &path_to_header(std::string path_to_header) {
+				header.set_path_to_header(path_to_header);
+				return *this;
+			}
+
 	public: HeaderBuilder &header_name(std::string header_name) {
 				header.set_header_name(header_name);
 				return *this;
@@ -62,13 +73,13 @@ class HeaderBuilder {
 				return *this;
 			}
 
-	public: HeaderBuilder &parent(std::string parent) {
-				header.set_parent(parent);
+	public: HeaderBuilder &path_to_parent(std::string path_to_parent) {
+				header.set_path_to_parent(path_to_parent);
 				return *this;
 			}
 
-	public: HeaderBuilder &children(std::vector<std::string> children) {
-				header.insert_children(children);
+	public: HeaderBuilder &paths_to_children(std::vector<std::string> paths_to_children) {
+				header.insert_paths_to_children(paths_to_children);
 				return *this;
 			}
 
@@ -79,74 +90,81 @@ class HeaderBuilder {
 
 class Headers {
 	private: std::vector<Header> headers;
-	private: std::vector<std::string> parent_headers; // The most "above" headers
+	private: std::vector<std::string> parent_headers; 
 	
-	public: void read_father_headers() {
-				std::ifstream data("../data/headers.txt");
+	private: Header read_header(std::string &path_to_header) {
+					std::ifstream parent_header_file(path_to_header);	
+					
+					std::string path, header_name, path_to_parent; 
+					int completion_level;
+					std::vector<std::string> paths_to_children;
 
-				while (!data.eof()) {
-					std::string parent_header;
-					getline(data, parent_header);
+					parent_header_file >> path;
+					getline(parent_header_file, header_name);
+					parent_header_file
+						>> completion_level
+						>> path_to_parent;
 
-					parent_headers.push_back(parent_header);
+					while (!parent_header_file.eof()) {
+						std::string path_to_child;
+						parent_header_file >> path_to_child;
+
+						paths_to_children.push_back(path_to_child);
+					}
+
+					HeaderBuilder header_builder;
+					Header header = header_builder
+						.path_to_header(path)
+						.header_name(header_name)
+						.completion_level(completion_level)
+						.path_to_parent(path_to_parent)
+						.paths_to_children(paths_to_children)
+						.build();
+
+					return header;
 				}
-			}
-	
-	private: std::vector<std::string> get_all_header_names() {
-				std::ifstream headers("../data/all_headers.txt");
-				std::vector<std::string> all_headers;	
 
-				while (!headers.eof()) {
-					std::string header;
-					headers >> header;
-
-					all_headers.push_back(header);	
+	private: void read_headers() {
+				for (auto &header : headers) {
+					for (auto &path_to_child : header.get_paths_to_children()) {
+						Header header = read_header(path_to_child);
+						headers.push_back(header);
+					}
 				}
+			 }
+
+	// Gets all the most above headers 
+	public: Headers() {
+				std::ifstream parent_headers_file("../data/headers");
 				
-				return all_headers;
+				while (!parent_headers_file.eof()) {
+					std::string path_to_header;
+					parent_headers_file >> path_to_header;
+					
+					Header parent_header = read_header(path_to_header);	
+					headers.push_back(parent_header);
+				}
+
+				read_headers(); // Reads the rest of the headers
 			}	
+	
+	private: void save_header(Header &header) {
+				std::ofstream header_out(header.get_path_to_header());
 
-	private: Header read_header(std::string header_name) {
-				HeaderBuilder header_builder;
-			
-				std::ifstream header_data("../data/" + header_name);	
+				header_out
+					<< header.get_path_to_header() << '\n'
+					<< header.get_header_name() << '\n' 
+					<< header.get_completion_level() << '\n' 
+					<< header.get_path_to_parent() << '\n';
 
-				std::string parent;
-				int completion_level;
-				std::vector<std::string> children;
-
-				getline(header_data, parent); 
-				header_data >> completion_level;
-
-				while (!header_data.eof()) {
-					std::string child;
-					getline(header_data, child);
-
-					children.push_back(child);
+				for (const auto &children_paths : header.get_paths_to_children()) {
+					header_out << children_paths << ' ';
 				}
-				
-				Header header = header_builder
-					.header_name(header_name)
-					.completion_level(completion_level)
-					.parent(parent)
-					.children(children)
-					.build();
-
-				return header;
-			}
-
-	public: void fill_headers() {
-				std::vector<std::string> all_header_names 
-					= get_all_header_names();		
-			
-				for (const auto &header_name : all_header_names) {
-					Header temp = read_header(header_name);						
-					headers.push_back(temp);
-				}
-
-			}
+			 }
 
 	public: void save_headers() {
-
+				for (auto &header : headers) {
+					save_header(header);	
+				}
 			}
 };
