@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -89,10 +90,9 @@ class HeaderBuilder {
 };
 
 class Headers {
-	private: std::vector<Header> headers;
-	private: std::vector<std::string> parent_headers; 
+	private: std::map<std::string, Header> headers;
 	
-	private: Header read_header(std::string &path_to_header) {
+	private: Header read_header(const std::string &path_to_header) {
 					std::ifstream parent_header_file(path_to_header);	
 					
 					std::string path, header_name, path_to_parent; 
@@ -104,10 +104,12 @@ class Headers {
 					parent_header_file
 						>> completion_level
 						>> path_to_parent;
-
-					while (!parent_header_file.eof()) {
-						std::string path_to_child;
-						parent_header_file >> path_to_child;
+					
+					std::string path_to_child;
+					while (parent_header_file >> path_to_child) {
+						if (path_to_child.empty() or path_to_child == " ") {
+							continue; // Skipping empty lines
+						}
 
 						paths_to_children.push_back(path_to_child);
 					}
@@ -124,28 +126,33 @@ class Headers {
 					return header;
 				}
 
-	private: void read_headers() {
-				for (auto &header : headers) {
-					for (auto &path_to_child : header.get_paths_to_children()) {
-						Header header = read_header(path_to_child);
-						headers.push_back(header);
+	private: std::map<std::string, Header> read_headers() {
+				std::ifstream parent_headers_file("../data/headers");	
+				
+				std::map<std::string, Header> new_headers;
+
+				std::string header_path;
+				while (parent_headers_file >> header_path) {
+					if (header_path.empty() or header_path == " ") {
+						continue; // Skipping empty lines
+					}
+
+					Header new_parnet_header = read_header(header_path);
+					new_headers[new_parnet_header.get_path_to_header()] = new_parnet_header;
+				}
+				
+				for (auto &[path, header] : new_headers) {
+					for (const auto &header_path : header.get_paths_to_children()) {
+						Header new_header = read_header(header_path);
+						new_headers[new_header.get_path_to_header()] = new_header;
 					}
 				}
+
+				return new_headers;
 			 }
 
-	// Gets all the most above headers 
 	public: Headers() {
-				std::ifstream parent_headers_file("../data/headers");
-				
-				while (!parent_headers_file.eof()) {
-					std::string path_to_header;
-					parent_headers_file >> path_to_header;
-					
-					Header parent_header = read_header(path_to_header);	
-					headers.push_back(parent_header);
-				}
-
-				read_headers(); // Reads the rest of the headers
+				headers = read_headers();
 			}	
 	
 	private: void save_header(Header &header) {
@@ -163,8 +170,36 @@ class Headers {
 			 }
 
 	public: void save_headers() {
-				for (auto &header : headers) {
+				for (auto &[path, header]: headers) {
 					save_header(header);	
 				}
+			}
+	
+	public: void add_new_header(const std::string &path_to_self, const std::string &name, 
+					std::string path_to_parent, int completion_level = 0, 
+					std::vector<std::string> children_paths = {}) {
+				
+				HeaderBuilder new_header_builder;
+				Header new_header = new_header_builder
+					.header_name(name)
+					.path_to_header(path_to_self)
+					.completion_level(completion_level)
+					.path_to_parent(path_to_parent)
+					.paths_to_children(children_paths)
+					.build();
+
+				headers[path_to_self] = new_header;
+			}
+	
+	public: void change_header_name(const std::string &path_to_self, const std::string &new_name) {
+				headers[path_to_self].set_header_name(new_name);
+			}
+
+	public: std::map<std::string, Header> get_headers() {
+				return headers;
+			}
+	
+	public: Header get_header(std::string path) {
+				return headers[path];
 			}
 };

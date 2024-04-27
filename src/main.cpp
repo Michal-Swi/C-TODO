@@ -9,7 +9,7 @@ Command commands;
 void main_loop() {
 	while (true) {
 		renderer.render_headers
-			(commands.get_headers(), Command::get_current_command());
+			(headers.get_headers(), Command::get_current_command());
 
 		if (commands.edit_mode) {
 			char ch = getch();
@@ -29,8 +29,8 @@ int main() {
 	keypad(stdscr, TRUE);
 	refresh();
 	noecho();
-	commands.read_headers();
-	
+	CompletionLevels::fill_completion_levels();
+
 	main_loop();
 
 	endwin();

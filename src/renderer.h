@@ -1,42 +1,68 @@
 #include <ios>
 #include <ncurses.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <fstream>
 #include <algorithm>
 #include "edit_mode.h"
 
+namespace CompletionLevels {
+	std::unordered_map<int, std::string> completion_levels;
+	
+	void fill_completion_levels() {
+		completion_levels[0] = "[ ]";
+		completion_levels[1] = "[-]";
+		completion_levels[2] = "[X]";
+	}
+}
+
+namespace DoubleRenderChecker {
+	std::unordered_map<std::string, bool> double_render_checker;
+}
+
 class Renderer {
-	public: void render_headers
-			(std::vector<std::string> tasks, 
+	private: void render_children(Header header, int depth = 0) { // Depth - amount of tabs
+				std::vector<std::string> children_paths = header.get_paths_to_children();	
+				int depth_ = depth;
+
+				for (int i = 0; i < depth; i++) printw("\t");
+
+				for (auto &child_path : children_paths) {
+					if (DoubleRenderChecker::double_render_checker[child_path]) continue;
+					DoubleRenderChecker::double_render_checker[child_path] = true;
+
+					printw(headers.get_header(child_path).get_header_name().c_str());
+					render_children(headers.get_header(child_path), depth + 1) ;
+				}
+			 }
+
+	public: void render_all_headers
+			(std::map<std::string, Header> headers_to_render, 
 			 std::string current_command) {
 		
 		int x, y;
 		getyx(stdscr, y, x);
 
-		if (tasks.empty()) {
+		if (headers_to_render.empty()) {
 			printw("NO TASKS");
 			return;
 		}
+		
+		std::unordered_map<std::string, bool> duplicate_rendering_checker;
+		for (auto &[path, header] : headers_to_render) {
+			std::string output;
+
+			output += header.get_header_name();
+			output += ' ';
+			output += CompletionLevels::completion_levels[header.get_completion_level()];
 			
-		clear();
-		
-		for (int i = 0; i <std::min(10, Command::get_headers_size()) ; i++) {
-			tasks[i] = std::to_string(i + 1) + '.' + tasks[i];
-			mvprintw(i, 0, tasks[i].c_str());
-			refresh();
+			DoubleRenderChecker::double_render_checker[path] = true;
+
+			render_children(header);
 		}
-		
-		if (Command::get_headers_size() > 10) printw("\nPress n to render next page");
-		
-		int max_y, max_x;
-		getmaxyx(stdscr, max_y, max_x);
 
-		move(max_y - 1, 0);
-		printw(Command::get_current_command().c_str());
-
-		move(y, x);
-		refresh();
+		DoubleRenderChecker::double_render_checker.clear();
 	}	
 	
 	private: std::string get_text() {

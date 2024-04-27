@@ -9,6 +9,8 @@
 #include "headers.h"
 #include "definitions.h"
 
+Headers headers;
+
 class Command {
 	public: void add_character_to_header
 			(std::string &header, char ch, bool &move_to_previous_position) {
@@ -144,12 +146,10 @@ class Command {
 };
 
 bool Command::edit_mode = false;
-std::string Command::current_command = "";
-std::vector<std::string> Command::headers;
 
 class ExitCommand : public Command {
 	public: void initialize_command() override {
-			save_headers();
+			headers.save_headers();
 			endwin();
 			exit(0);
 		}
@@ -227,6 +227,6 @@ class AddNewHeaderCommand : public Command {
 			
 			if (header_name == "") return;
 			
-			add_to_headers(header_name);
+			headers
 		}
 };

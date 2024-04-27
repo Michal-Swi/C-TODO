@@ -31,4 +31,3 @@ class KeyLayout {
 			key_layout[":"] = new EditModeCommand();
 		}	
 };
-
