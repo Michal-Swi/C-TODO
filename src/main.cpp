@@ -8,7 +8,7 @@ Command commands;
 
 void main_loop() {
 	while (true) {
-		renderer.render_headers
+		renderer.render_all_headers
 			(headers.get_headers(), Command::get_current_command());
 
 		if (commands.edit_mode) {

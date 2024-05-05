@@ -22,18 +22,19 @@ namespace DoubleRenderChecker {
 }
 
 class Renderer {
-	private: void render_children(Header header, int depth = 0) { // Depth - amount of tabs
+	private: void render_children(std::vector<Header> &flat_headers, Header header, int depth = 0) { // Depth - amount of tabs
 				std::vector<std::string> children_paths = header.get_paths_to_children();	
-				int depth_ = depth;
 
 				for (int i = 0; i < depth; i++) printw("\t");
 
 				for (auto &child_path : children_paths) {
+					
+
 					if (DoubleRenderChecker::double_render_checker[child_path]) continue;
 					DoubleRenderChecker::double_render_checker[child_path] = true;
 
 					printw(headers.get_header(child_path).get_header_name().c_str());
-					render_children(headers.get_header(child_path), depth + 1) ;
+					render_children(flat_headers, headers.get_header(child_path), depth + 1) ;
 				}
 			 }
 
@@ -41,14 +42,12 @@ class Renderer {
 			(std::map<std::string, Header> headers_to_render, 
 			 std::string current_command) {
 		
-		int x, y;
-		getyx(stdscr, y, x);
-
 		if (headers_to_render.empty()) {
 			printw("NO TASKS");
 			return;
 		}
 		
+		std::vector<Header> flat_headers;
 		std::unordered_map<std::string, bool> duplicate_rendering_checker;
 		for (auto &[path, header] : headers_to_render) {
 			std::string output;
@@ -58,11 +57,21 @@ class Renderer {
 			output += CompletionLevels::completion_levels[header.get_completion_level()];
 			
 			DoubleRenderChecker::double_render_checker[path] = true;
+			
+			flat_headers.push_back(header);
 
-			render_children(header);
+			render_children(flat_headers, header);
 		}
 
 		DoubleRenderChecker::double_render_checker.clear();
+
+		int x, y;
+		getyx(stdscr, y, x);
+
+		move(getmaxy(stdscr), getmaxx(stdscr));
+
+		printw(current_command.c_str());
+		move(y, x);
 	}	
 	
 	private: std::string get_text() {

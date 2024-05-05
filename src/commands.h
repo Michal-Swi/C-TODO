@@ -3,13 +3,12 @@
 #include <cstdlib> // For ExitCommand.
 #include <map>
 #include <fstream>
+#include <string>
 #include <vector>
 #include <regex>
 #include <tuple>
 #include "headers.h"
 #include "definitions.h"
-
-Headers headers;
 
 class Command {
 	public: void add_character_to_header
@@ -221,12 +220,39 @@ class AddNewHeaderCommand : public Command {
 
 			return ""; // Done just for LSP purposes
 		 }
+	
+	private: std::string format_header_name(const std::string &header_name) {
+				 std::string formated_header_name;
+
+				 for (const auto &ch : header_name) {
+					ch == ' ' ? formated_header_name += '_' : formated_header_name += ch;
+				 }
+
+				 return formated_header_name;
+			 }
+
+	private: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
+				return path_to_parent + '.' + format_header_name(header_name);	
+			 }
 
 	public: void initialize_command() override {
 			std::string header_name = get_header_name();
-			
 			if (header_name == "") return;
 			
-			headers
+			int current_y, current_x;
+			getyx(stdscr, current_y, current_x);
+
+			Header neigbouring_header = headers.get_header_flat(current_y);
+			
+			HeaderBuilder new_header_builder;
+			Header new_header = new_header_builder
+				.header_name(header_name)
+				.path_to_header(create_path_to_self(header_name, neigbouring_header.get_path_to_parent()))
+				.completion_level(0) // New header can't have a different completion level
+				.path_to_parent(neigbouring_header.get_path_to_parent())
+				.paths_to_children({}) // New headers cant't have children yet 
+				.build();
+
+			headers.insert_header(new_header);
 		}
 };

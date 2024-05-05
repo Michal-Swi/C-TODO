@@ -9,13 +9,13 @@ The app has two modes, normal mode and edit mode in edit mode you can change
 headers however you want, by moving with arrow keys, adding and deleting 
 characters.
 
-# Deafult config
+# Deafult keybinds
 
-## To switch from and to edit mode use
-```:```
+## Switching modes
+```:``` Switches between normal and insert / edit mode 
 
-## Adding a header (normal mode) 
-```a```
-
-## Quiting
+## Quitting 
 ```qu``` Quits with saving
+
+## Adding new headers
+```a``` Adds new header in the current 'level'

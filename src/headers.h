@@ -91,7 +91,16 @@ class HeaderBuilder {
 
 class Headers {
 	private: std::map<std::string, Header> headers;
+	private: static std::vector<Header> headers_flat;
 	
+	public: static std::vector<Header> get_headers_flat() {
+				return headers_flat;
+			}
+	
+	public: static void set_headers_flat(std::vector<Header> &headers_flat) {
+				Headers::headers_flat = headers_flat;
+			}
+
 	private: Header read_header(const std::string &path_to_header) {
 					std::ifstream parent_header_file(path_to_header);	
 					
@@ -154,7 +163,7 @@ class Headers {
 	public: Headers() {
 				headers = read_headers();
 			}	
-	
+
 	private: void save_header(Header &header) {
 				std::ofstream header_out(header.get_path_to_header());
 
@@ -199,7 +208,19 @@ class Headers {
 				return headers;
 			}
 	
-	public: Header get_header(std::string path) {
+	public: Header get_header(const std::string &path) {
 				return headers[path];
 			}
+	
+	public: Header get_header_flat(const int &position) {
+				return headers_flat[position];
+			}
+
+	public: void insert_header(Header &header) {
+				headers[header.get_path_to_header()] = header;	
+			}
 };
+
+std::vector<Header> Headers::headers_flat = {};
+
+Headers headers;
