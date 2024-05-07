@@ -6,6 +6,11 @@ class KeyLayout {
 	public: std::map<std::string, Command*> key_layout; 
 
 	public: void execute_command(std::string command) {
+			std::fstream file;
+			file.open("log.log", std::ios::app);
+
+			file << command << '\n';
+
 			if (!(key_layout.count(command) > 0)) {
 				int current_y, current_x;
 				 getyx(stdscr, current_y, current_x);

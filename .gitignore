@@ -1,4 +1,1 @@
-makefile
-a.out
-/src/a.out
-/src/makefile
+src/log.log

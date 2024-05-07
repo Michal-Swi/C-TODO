@@ -145,6 +145,7 @@ class Command {
 };
 
 bool Command::edit_mode = false;
+std::string Command::current_command = "";
 
 class ExitCommand : public Command {
 	public: void initialize_command() override {

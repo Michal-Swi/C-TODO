@@ -1,3 +1,4 @@
+#include <cassert>
 #include <ios>
 #include <ncurses.h>
 #include <string>
@@ -7,106 +8,81 @@
 #include <algorithm>
 #include "edit_mode.h"
 
-namespace CompletionLevels {
-	std::unordered_map<int, std::string> completion_levels;
+class CompletionLevels {
+	private: static std::unordered_map<int, std::string> completion_levels;
 	
-	void fill_completion_levels() {
+	public: static void fill_completion_levels() {
 		completion_levels[0] = "[ ]";
 		completion_levels[1] = "[-]";
 		completion_levels[2] = "[X]";
 	}
-}
 
-namespace DoubleRenderChecker {
-	std::unordered_map<std::string, bool> double_render_checker;
-}
-
-class Renderer {
-	private: void render_children(std::vector<Header> &flat_headers, Header header, int depth = 0) { // Depth - amount of tabs
-				std::vector<std::string> children_paths = header.get_paths_to_children();	
-
-				for (int i = 0; i < depth; i++) printw("\t");
-
-				for (auto &child_path : children_paths) {
-					
-
-					if (DoubleRenderChecker::double_render_checker[child_path]) continue;
-					DoubleRenderChecker::double_render_checker[child_path] = true;
-
-					printw(headers.get_header(child_path).get_header_name().c_str());
-					render_children(flat_headers, headers.get_header(child_path), depth + 1) ;
-				}
-			 }
-
-	public: void render_all_headers
-			(std::map<std::string, Header> headers_to_render, 
-			 std::string current_command) {
-		
-		if (headers_to_render.empty()) {
-			printw("NO TASKS");
-			return;
-		}
-		
-		std::vector<Header> flat_headers;
-		std::unordered_map<std::string, bool> duplicate_rendering_checker;
-		for (auto &[path, header] : headers_to_render) {
-			std::string output;
-
-			output += header.get_header_name();
-			output += ' ';
-			output += CompletionLevels::completion_levels[header.get_completion_level()];
-			
-			DoubleRenderChecker::double_render_checker[path] = true;
-			
-			flat_headers.push_back(header);
-
-			render_children(flat_headers, header);
-		}
-
-		DoubleRenderChecker::double_render_checker.clear();
-
-		int x, y;
-		getyx(stdscr, y, x);
-
-		move(getmaxy(stdscr), getmaxx(stdscr));
-
-		printw(current_command.c_str());
-		move(y, x);
-	}	
-	
-	private: std::string get_text() {
-		std::string text;
-		
-		char ch;
-		while (ch != ENTER_KEY) {
-			ch = getch();
-			if (ch == ENTER_KEY and text.empty()) ch = 'p'; // Something different 
-															// from ENTER_KEY so that
-															// the loop continues
-			else if (ch != ENTER_KEY) {
-				text += ch;
-				addch(ch);
-			}
-		}
-
-		int y, x;
-		getyx(stdscr, y, x);
-		
-		move(y, 0); // Moves to the start of the line to clear it
-		clrtoeol(); // Clears the line from addch();
-		refresh();
-
-		return text;
-	}
-
-	// Outputs text written by user
-	public: void render_user_text() {
-		std::string user_text = get_text();
-		
-		std::fstream headers;
-		headers.open("../data/headers.txt", std::ios_base::app);
-
-		printw(user_text.c_str());
+	public: static std::string get_completion_level(int completion_level) {
+		assert(completion_level > 0 or completion_level < 4);
+		return completion_levels[completion_level];
 	}
 };
 
+std::unordered_map<int, std::string> CompletionLevels::completion_levels;
+
+namespace DoubleRenderChecker {
+	std::map<std::string, bool> double_render_checker; // We don't want headers to render twice
+}
+
+class Renderer {
+	private: std::string get_full_task_output(Header header) {
+				std::string output;
+				
+				output += header.get_header_name();
+				output += " - ";
+				output += CompletionLevels::get_completion_level(header.get_completion_level());
+
+				return output;
+			 }
+
+	private: void render_children_of_header(int &y, Header header, int depth = 1) { // Header not a reference (?)
+				y++;
+				move(y, 0);
+
+				for (int i = 0; i < depth; i++) printw("\t");
+		
+				for (auto &path_to_child : header.get_paths_to_children()) {
+					if (DoubleRenderChecker::double_render_checker[path_to_child]) continue;
+					DoubleRenderChecker::double_render_checker[path_to_child] = true;
+					
+					std::string output = get_full_task_output(headers.get_header(path_to_child));
+					printw(output.c_str());
+
+					render_children_of_header(y, headers.get_header(path_to_child), depth + 1);
+				}
+			 }
+
+	public: void render_all_headers(std::map<std::string, Header> all_headers, 
+					const std::string &current_command) {
+		
+		if (all_headers.empty()) {
+			printw("NO TASKS");
+			return;
+		}
+
+		int x, y;
+		getyx(stdscr, y, x);
+			
+		for (auto &[path, header] : all_headers) {
+			if (DoubleRenderChecker::double_render_checker[path]) continue;
+			DoubleRenderChecker::double_render_checker[path] = true;
+			
+			move(y, 0);
+
+			std::string output = get_full_task_output(header);
+			printw(output.c_str());
+
+			render_children_of_header(y, header);
+		}
+
+		printw(current_command.c_str());
+		move(y, x);
+		
+		DoubleRenderChecker::double_render_checker.clear();
+	}	
+};
