@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstddef>
 #include <ios>
 #include <ncurses.h>
 #include <string>
@@ -25,10 +26,6 @@ class CompletionLevels {
 
 std::unordered_map<int, std::string> CompletionLevels::completion_levels;
 
-namespace DoubleRenderChecker {
-	std::map<std::string, bool> double_render_checker; // We don't want headers to render twice
-}
-
 class Renderer {
 	private: std::string get_full_task_output(Header header) {
 				std::string output;
@@ -40,49 +37,36 @@ class Renderer {
 				return output;
 			 }
 
-	private: void render_children_of_header(int &y, Header header, int depth = 1) { // Header not a reference (?)
-				y++;
-				move(y, 0);
-
-				for (int i = 0; i < depth; i++) printw("\t");
-		
-				for (auto &path_to_child : header.get_paths_to_children()) {
-					if (DoubleRenderChecker::double_render_checker[path_to_child]) continue;
-					DoubleRenderChecker::double_render_checker[path_to_child] = true;
-					
-					std::string output = get_full_task_output(headers.get_header(path_to_child));
-					printw(output.c_str());
-
-					render_children_of_header(y, headers.get_header(path_to_child), depth + 1);
-				}
-			 }
-
-	public: void render_all_headers(std::map<std::string, Header> all_headers, 
+	public: void render_headers(std::vector<HeaderFlat> headers_to_render, 
 					const std::string &current_command) {
 		
-		if (all_headers.empty()) {
+		if (headers_to_render.empty()) {
 			printw("NO TASKS");
 			return;
 		}
 
-		int x, y;
-		getyx(stdscr, y, x);
-			
-		for (auto &[path, header] : all_headers) {
-			if (DoubleRenderChecker::double_render_checker[path]) continue;
-			DoubleRenderChecker::double_render_checker[path] = true;
-			
-			move(y, 0);
+		int x = 0, y = 0;
+		move(y, x);
 
-			std::string output = get_full_task_output(header);
-			printw(output.c_str());
+		for (auto &header_to_render : headers_to_render) {
+			if (header_to_render.header.get_colored()) {
+				attron(COLOR_PAIR(2));	
+			}
 
-			render_children_of_header(y, header);
+			for (int i = 0; i < header_to_render.depth; i++) printw("\t");
+			std::string to_render = get_full_task_output(header_to_render.header);
+			printw(to_render.c_str());
+			refresh();
+
+			attron(COLOR_PAIR(1));
+			
+			y++;
+			move(y, x);
 		}
 
+		move(getmaxy(stdscr) - 1, 0);	
 		printw(current_command.c_str());
-		move(y, x);
-		
-		DoubleRenderChecker::double_render_checker.clear();
+		refresh();
+		move(0, 0);
 	}	
 };

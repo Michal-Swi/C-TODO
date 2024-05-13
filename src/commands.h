@@ -3,6 +3,7 @@
 #include <cstdlib> // For ExitCommand.
 #include <map>
 #include <fstream>
+#include <ratio>
 #include <string>
 #include <vector>
 #include <regex>
@@ -256,4 +257,13 @@ class AddNewHeaderCommand : public Command {
 
 			headers.insert_header(new_header);
 		}
+};
+
+class NormalMode : Command {
+	public: void initialize_command() override {
+				init_pair(1, COLOR_BLACK, COLOR_WHITE);
+				// attron(COLOR_PAIR(1));
+
+				move(0, 0); 	
+			}
 };

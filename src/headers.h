@@ -10,6 +10,15 @@ class Header {
 		std::string path_to_parent;
 		std::vector<std::string> paths_to_children;
 		std::string path_to_header;
+		bool colored = false;
+	
+	public: void set_colored(const bool &colored) {
+				this->colored = colored;
+			}
+	
+	public: bool get_colored() {
+				return colored;
+			}
 	
 	public: void set_path_to_header(const std::string &path_to_header) {
 				this->path_to_header = path_to_header;
@@ -83,45 +92,41 @@ class HeaderBuilder {
 				header.insert_paths_to_children(paths_to_children);
 				return *this;
 			}
+	
+	public: HeaderBuilder &colored(const bool &colored) {
+				header.set_colored(colored);
+				return *this;
+			}
 
 	public: Header build() {
 		return header;
 	}
 };
 
+struct HeaderFlat {
+	int depth = 0;
+	Header header;
+};
+
 class Headers {
 	private: std::map<std::string, Header> headers;
-	private: static std::vector<Header> headers_flat;
+	private: static std::vector<HeaderFlat> headers_flat;
 	
-	public: static std::vector<Header> get_headers_flat() {
+	public: static std::vector<HeaderFlat> get_headers_flat() {
 				return headers_flat;
 			}
-	
-	public: static void set_headers_flat(const std::vector<Header> &headers_flat) {
-				Headers::headers_flat = headers_flat;
+
+	public: static void set_headers_flat(const std::vector<HeaderFlat> &new_headers_flat) {
+				headers_flat = new_headers_flat;
 			}
 	
-	public: void make_new_headers_flat() {
-				std::vector<Header> new_headers_flat;
-
-				for (auto &[path, header] : headers) {
-					new_headers_flat.push_back(header);
-				}
-
-				headers_flat = new_headers_flat;
-			 }
+	public: static Header get_header_flat(const int &y) {
+				return headers_flat[y].header;
+			}
 	
-	private: void log_all_headers() {
-				 std::fstream log;
-				 log.open("log.log", std::ios::app);
-
-				 for (auto &[path, header] : headers) {
-					 log << "Header path: " << path << '\n';
-					 log << "Header name: " << header.get_header_name() << '\n';
-					 log << "Completion level: " << header.get_completion_level() << '\n';
-					 log << '\n';
-				 }
-			 }
+	public: static void change_header_flat(const std::string new_header_flat_name, const int &y) {
+				headers_flat[y].header.set_header_name(new_header_flat_name);
+			}
 
 	private: Header read_header(std::string &path_to_header) {
 					std::ifstream parent_header_file("../data/" + path_to_header);	
@@ -131,7 +136,6 @@ class Headers {
 					std::vector<std::string> paths_to_children;
 					
 					// TODO - fix the getline naming issue
-
 					parent_header_file >> path >> name;
 
 					parent_header_file
@@ -158,27 +162,42 @@ class Headers {
 	
 					return header;
 				}
+	
+	private: void read_children_of_header(std::vector<std::string> &paths_to_children,
+					 std::map<std::string, Header> &new_headers, int depth = 1) {
+
+				 for (auto &path_to_child : paths_to_children) {
+					Header new_child = read_header(path_to_child);
+					new_headers[path_to_child] = new_child;
+					
+					HeaderFlat new_header_to_render;
+					new_header_to_render.header = new_child;
+					new_header_to_render.depth = depth;
+					headers_flat.push_back(new_header_to_render);
+
+					std::vector<std::string> new_paths_to_children = new_child.get_paths_to_children();
+					read_children_of_header(new_paths_to_children, new_headers, depth + 1);
+				 }
+			 }
 
 	private: std::map<std::string, Header> read_headers() {
 				std::ifstream parent_headers_file("../data/parent_headers");	
 				
 				std::map<std::string, Header> new_headers;
 
-				std::string header_path;
-				while (parent_headers_file >> header_path) {
-					if (header_path.empty() or header_path == " ") {
-						continue; // Skipping empty lines
-					}
+				std::string path_to_header;
+				while (parent_headers_file >> path_to_header) {
+					if (path_to_header.empty()) continue; // Skipping possible empty lines
 					
-					Header new_parnet_header = read_header(header_path);
-					new_headers[new_parnet_header.get_path_to_header()] = new_parnet_header;
-				}
-				
-				for (auto &[path, header] : new_headers) {
-					for (auto &header_path : header.get_paths_to_children()) {
-						Header new_header = read_header(header_path);
-						new_headers[new_header.get_path_to_header()] = new_header;
-					}
+					Header new_header = read_header(path_to_header);
+					new_headers[path_to_header] = new_header;
+					
+					HeaderFlat new_header_to_render;
+					new_header_to_render.header = new_header;
+					headers_flat.push_back(new_header_to_render);
+
+					std::vector<std::string> paths_to_children = new_header.get_paths_to_children();
+					read_children_of_header(paths_to_children, new_headers);
 				}
 
 				return new_headers;
@@ -186,11 +205,10 @@ class Headers {
 
 	public: Headers() {
 				headers = read_headers();
-				log_all_headers();
 			}	
 
 	private: void save_header(Header &header) {
-				std::ofstream header_out(header.get_path_to_header());
+				std::ofstream header_out("../data" + header.get_path_to_header());
 
 				header_out
 					<< header.get_path_to_header() << '\n'
@@ -204,7 +222,13 @@ class Headers {
 			 }
 
 	public: void save_headers() {
+				std::ofstream parent_headers("../data/parent_headers");
+
 				for (auto &[path, header]: headers) {
+					if (header.get_path_to_parent() == ".") { // Is a parent header
+						parent_headers << header.get_path_to_header() << '\n';		
+					}
+
 					save_header(header);	
 				}
 			}
@@ -236,16 +260,27 @@ class Headers {
 	public: Header get_header(std::string &path) {
 				return headers[path];
 			}
-	
-	public: Header get_header_flat(const int &position) {
-				return headers_flat[position];
-			}
 
 	public: void insert_header(Header &header) {
 				headers[header.get_path_to_header()] = header;	
 			}
+
+	public: void change_header(const Header &header, const std::string &path_to_self) {
+				headers[path_to_self] = header;
+			}
+	
+	public: void change_colored(const bool &colored, const std::string &path_to_header) {
+				headers[path_to_header].set_colored(colored);
+
+				for (auto &header : headers_flat) {
+					if (header.header.get_path_to_header() == path_to_header) {
+						header.header.set_colored(colored);
+						return;
+					}
+				}
+			}
 };
 
-std::vector<Header> Headers::headers_flat = {};
+std::vector<HeaderFlat> Headers::headers_flat = {};
 
 Headers headers;
