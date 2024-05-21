@@ -1,24 +1,19 @@
-#include "renderer.h"
-#include <cstddef>
+#include "modes.h"
 #include <ncurses.h>
 
 EditMode edit_mode;
 KeyLayout keys;
 Renderer renderer;
 Command commands;
+NormalMode normal_mode;
 
 void main_loop() {
 	while (true) {
 		renderer.render_headers(Headers::get_headers_flat(), Command::get_current_command());	
-
-		if (commands.edit_mode) {
-			char ch = getch();
-			if (ch == ':') { keys.execute_command(":"); continue; }
-				 
-			edit_mode.initialize_command(ch); 
+		if (!Command::edit_mode) {
+			normal_mode.initialize_command();
 		} else {
-			Command::set_current_command(commands.get_command());
-			keys.execute_command(Command::get_current_command());
+			edit_mode.initialize_command();
 		}
 	}
 }

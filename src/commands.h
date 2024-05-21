@@ -159,7 +159,7 @@ class ExitCommand : public Command {
 class EditModeCommand : public Command {
 	public:  void initialize_command() override {
 			edit_mode ? edit_mode = false : edit_mode = true;	
-			
+
 			std::string message = "Edit mode is ";
 			if (edit_mode) message += "on";
 			else message += "off";
@@ -257,13 +257,4 @@ class AddNewHeaderCommand : public Command {
 
 			headers.insert_header(new_header);
 		}
-};
-
-class NormalMode : Command {
-	public: void initialize_command() override {
-				init_pair(1, COLOR_BLACK, COLOR_WHITE);
-				// attron(COLOR_PAIR(1));
-
-				move(0, 0); 	
-			}
 };

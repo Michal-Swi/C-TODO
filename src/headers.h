@@ -124,6 +124,10 @@ class Headers {
 				return headers_flat[y].header;
 			}
 	
+	public: static int get_depth_flat(const int &y) {
+				return headers_flat[y].depth;
+			}
+	
 	public: static void change_header_flat(const std::string new_header_flat_name, const int &y) {
 				headers_flat[y].header.set_header_name(new_header_flat_name);
 			}
@@ -269,6 +273,7 @@ class Headers {
 				headers[path_to_self] = header;
 			}
 	
+	// Note that both change_colored and change_colored_flat change colored in both flat and normal.
 	public: void change_colored(const bool &colored, const std::string &path_to_header) {
 				headers[path_to_header].set_colored(colored);
 
@@ -278,6 +283,11 @@ class Headers {
 						return;
 					}
 				}
+			}
+
+	public: void change_colored_flat(const bool &colored, const int &y) {
+				headers_flat[y].header.set_colored(colored);
+				headers[headers_flat[y].header.get_path_to_header()].set_colored(colored);
 			}
 };
 

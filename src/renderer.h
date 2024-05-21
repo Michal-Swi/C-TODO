@@ -7,7 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-#include "edit_mode.h"
+#include "key_layout.h"
 
 class CompletionLevels {
 	private: static std::unordered_map<int, std::string> completion_levels;
@@ -40,6 +40,9 @@ class Renderer {
 	public: void render_headers(std::vector<HeaderFlat> headers_to_render, 
 					const std::string &current_command) {
 		
+		int current_x, current_y;
+		getyx(stdscr, current_y, current_x);
+
 		if (headers_to_render.empty()) {
 			printw("NO TASKS");
 			return;
@@ -53,7 +56,7 @@ class Renderer {
 				attron(COLOR_PAIR(2));	
 			}
 
-			for (int i = 0; i < header_to_render.depth; i++) printw("\t");
+			for (int i = 0; i < header_to_render.depth; i++) printw("    ");
 			std::string to_render = get_full_task_output(header_to_render.header);
 			printw(to_render.c_str());
 			refresh();
@@ -67,6 +70,6 @@ class Renderer {
 		move(getmaxy(stdscr) - 1, 0);	
 		printw(current_command.c_str());
 		refresh();
-		move(0, 0);
+		move(current_y, current_x);
 	}	
 };
