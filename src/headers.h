@@ -257,6 +257,11 @@ class Headers {
 				headers[path_to_self].set_header_name(new_name);
 			}
 
+	public: void change_header_name_flat(const std::string &header_name, const int &y) {
+				headers_flat[y].header.set_header_name(header_name);
+				headers[headers_flat[y].header.get_path_to_header()].set_header_name(header_name);
+			}
+
 	public: std::map<std::string, Header> get_headers() {
 				return headers;
 			}

@@ -3,7 +3,6 @@
 
 EditMode edit_mode;
 KeyLayout keys;
-Renderer renderer;
 Command commands;
 NormalMode normal_mode;
 

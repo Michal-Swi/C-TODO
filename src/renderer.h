@@ -42,6 +42,9 @@ class Renderer {
 		
 		int current_x, current_y;
 		getyx(stdscr, current_y, current_x);
+		
+		clear();
+		move(current_y, current_x);
 
 		if (headers_to_render.empty()) {
 			printw("NO TASKS");
@@ -73,3 +76,5 @@ class Renderer {
 		move(current_y, current_x);
 	}	
 };
+
+Renderer renderer;

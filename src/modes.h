@@ -30,8 +30,6 @@ class Modes : public Command {
 				}
 			 }
 
-	protected: Renderer new_renderer;
-
 	protected: void move_up(const bool &change_color, int &y, const bool check_boundries = false) {
 				if (y == 0) {
 					return;
@@ -76,7 +74,7 @@ class NormalMode : Modes {
 		move(y, 0);
 		
 		headers.change_colored_flat(true, y);
-		new_renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
+		renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 		
 		while (true) {
 			char key_pressed = getch();
@@ -95,10 +93,11 @@ class NormalMode : Modes {
 					return;
 			}
 				
-			new_renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 
+			renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 
 		}
 	}
 };
+
 class EditMode : Modes {
 	private: bool check_validity_of_move(const Directions &direction) {
 				int x, y;
@@ -125,11 +124,85 @@ class EditMode : Modes {
 
 				move(y, x);
 			 }
+	
+	private: int get_starting_x(const int &y) {
+				int leading_spaces = get_amount_of_leading_spaces(y);
+				
+				int x = 0;
+				if (x < leading_spaces) x = leading_spaces;
+
+				return x;
+			 }
+	
+	private: std::string generate_spaces_from_depth(const int &y) {
+				 int spaces_from_depth = get_amount_of_leading_spaces(y);
+				 std::string spaces;
+
+				 while (spaces_from_depth--) {
+					 spaces += "    ";
+				 }
+
+				 return spaces;
+			 }
+	
+	private: std::string delete_spaces_from_depth(const std::string &s, const int &y) {
+				int leading_spaces = get_amount_of_leading_spaces(y);
+				
+				int i = 0;
+				std::string formated_string;
+				
+				for (; i < leading_spaces; i++);
+				for (; i < s.length(); i++) formated_string += s[i];
+
+				return formated_string;
+			 }
+
+	private: std::string delete_character_from_header_name(const std::string &header_name) {
+				int x, y;
+				getyx(stdscr, y, x);
+				int leading_spaces = get_amount_of_leading_spaces(y);
+
+				if (x <= get_amount_of_leading_spaces(y)) return header_name;
+
+				std::string formated_header_name = header_name;		
+
+				try {
+					formated_header_name.erase(x - leading_spaces - 1, 1);	
+				} catch (...) {
+					return header_name; // that's why header_name is made const 
+				}
+				
+				x--;
+				move(y, x);
+
+				return formated_header_name;
+			 }
+	
+	private: std::string add_character_to_header_name(const std::string &header_name, const char &ch_to_add) {
+				int x, y;
+				getyx(stdscr, y, x);
+				int leading_spaces = get_amount_of_leading_spaces(y);
+
+				std::string formated_header_name = header_name;
+
+				try {
+					formated_header_name.insert(x - leading_spaces, 1, ch_to_add);
+				} catch (...) {
+					return header_name;
+				}
+				
+				x++;
+				move(y, x);
+					
+				return formated_header_name;
+			 }
 
 	public: void initialize_command() override {
-				curs_set(1); // Makes cursor visible
+				curs_set(1);
 				
-				int y = 0, x = 0;
+				int y, x;
+				getyx(stdscr, y, x);
+				x = get_starting_x(y);
 				move(y, x);
 
 				while (true) {
@@ -148,7 +221,21 @@ class EditMode : Modes {
 						case ARROW_RIGHT:
 							move_horizontally(Directions::Right);
 							break;
+						case BACKSPACE_KEY:
+							{
+							std::string new_header_name = delete_character_from_header_name
+								(headers.get_header_flat(y).get_header_name());
+
+							headers.change_header_name_flat(new_header_name, y);
+							break;
+							}
+						default:
+							std::string new_header_name = add_character_to_header_name
+								(headers.get_header_flat(y).get_header_name(), key_pressed);
+							headers.change_header_name_flat(new_header_name, y);
+							break;
 					}
+					renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 				}
 			}
 };

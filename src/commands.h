@@ -45,6 +45,8 @@ class Command {
 				} catch (...) {
 					return;
 				}
+
+				move(y, x - 1);
 			}
 
 	public: void print_line(std::string str, bool move_to_previous_position) {
@@ -79,8 +81,7 @@ class Command {
 				move(current_y + 1, 0);
 				refresh();
 
-				return "Invalid command!"; // Later in main this will be set as
-										  // Command::current_command
+				return "Invalid command!"; 
 			}
 			
 			addch(ch);
@@ -113,8 +114,12 @@ class Command {
 				return current_command;
 			}
 	
-	public: static void set_current_command(std::string new_current_command) {
+	public: static void set_current_command(const std::string &new_current_command) {
 				current_command = new_current_command;
+			}
+	
+	public: static void add_to_current_command(const char &ch) {
+				current_command += ch;
 			}
 
 	public: virtual void initialize_command() {
@@ -148,6 +153,13 @@ class Command {
 bool Command::edit_mode = false;
 std::string Command::current_command = "";
 
+class ExitingCommands : public Command {
+	public: void initialize_command() override {
+				char ch = getch();
+			}
+};
+
+
 class ExitCommand : public Command {
 	public: void initialize_command() override {
 			headers.save_headers();
@@ -158,7 +170,11 @@ class ExitCommand : public Command {
 
 class EditModeCommand : public Command {
 	public:  void initialize_command() override {
-			edit_mode ? edit_mode = false : edit_mode = true;	
+			if (edit_mode) {
+				edit_mode = false;
+			} else {
+				edit_mode = true;
+			}
 
 			std::string message = "Edit mode is ";
 			if (edit_mode) message += "on";
@@ -177,6 +193,9 @@ class AddNewHeaderCommand : public Command {
 	private: std::string get_header_name() {
 			std::string header_name;
 			
+			int x, y;
+			getyx(stdscr, y, x);
+
 			int max_y, max_x;
 			getmaxyx(stdscr, max_y, max_x);
 			move(max_y - 1, 0);
@@ -194,26 +213,26 @@ class AddNewHeaderCommand : public Command {
 			while (ch != ENTER_KEY) {
 				char ch = getch();
 				bool move_to_previous_position = false;
-
-				if (ch == ENTER_KEY) return header_name;
-				else if (ch == BACKSPACE_KEY) {
-					delete_character(header_name);
-					print_line(header_name, false);
-					continue;	
-				} else if (ch == ARROW_LEFT) {
-					int x, y;
-					getyx(stdscr, y, x);
-
-					move(y, x - 1);
-					continue;
-				} else if (ch == ARROW_RIGHT) {
-					int x, y;
-					getyx(stdscr, y, x);
-
-					if (x >= header_name.length()) continue;
-
-					move(y, x + 1);
-					continue;
+				
+				switch(ch) {
+					case ENTER_KEY:
+						return header_name;
+					case BACKSPACE_KEY: 
+						delete_character(header_name);
+						print_line(header_name, false);
+						break;	
+					case ARROW_LEFT:
+						getyx(stdscr, y, x);
+		
+						move(y, x - 1);
+						break;
+					case ARROW_RIGHT:
+						getyx(stdscr, y, x);
+	
+						if (x >= header_name.length()) continue;
+	
+						move(y, x + 1);
+						break;
 				}
 
 				add_character_to_header(header_name, ch, move_to_previous_position);
@@ -224,13 +243,17 @@ class AddNewHeaderCommand : public Command {
 		 }
 	
 	private: std::string format_header_name(const std::string &header_name) {
-				 std::string formated_header_name;
+				std::string formated_header_name;
+				
+				for (const auto &ch : header_name) {
+					if (ch == ' ') {
+						formated_header_name += '_';
+					} else {
+						formated_header_name += ch;
+					}
+				}
 
-				 for (const auto &ch : header_name) {
-					ch == ' ' ? formated_header_name += '_' : formated_header_name += ch;
-				 }
-
-				 return formated_header_name;
+				return formated_header_name;
 			 }
 
 	private: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
