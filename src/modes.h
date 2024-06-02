@@ -70,7 +70,9 @@ class Modes : public Command {
 class NormalMode : Modes {
 	public: void initialize_command() override {
 		curs_set(0);
-		int y = 0;
+		
+		int y, x;
+		getyx(stdscr, y, x);
 		move(y, 0);
 		
 		headers.change_colored_flat(true, y);
@@ -229,6 +231,9 @@ class EditMode : Modes {
 							headers.change_header_name_flat(new_header_name, y);
 							break;
 							}
+						case ':':
+							Command::edit_mode = false;
+							return;
 						default:
 							std::string new_header_name = add_character_to_header_name
 								(headers.get_header_flat(y).get_header_name(), key_pressed);

@@ -1,7 +1,6 @@
+#include "file_to_string.h"
 #include <map>
-#include <string>
 #include <vector>
-#include <fstream>
 
 class Header {
 	private:
