@@ -1,1 +1,4 @@
-src/log.log
+./src/log.log
+./src/a.out
+./src/TODO
+./src/test.cpp

@@ -1,5 +1,9 @@
-#include "file_to_string.h"
+#include "custom_string_actions.h"
+#include <fstream>
+#include <iostream>
 #include <map>
+#include <ostream>
+#include <string>
 #include <vector>
 
 class Header {
@@ -132,35 +136,41 @@ class Headers {
 			}
 
 	private: Header read_header(std::string &path_to_header) {
-					std::ifstream parent_header_file("../data/" + path_to_header);	
+					std::string full_path_to_header = "../data/" + path_to_header;
+					std::string header_file_string = custom_string_actions::file_to_string(full_path_to_header);
 
 					std::string path, name, path_to_parent; 
 					int completion_level;
-					std::vector<std::string> paths_to_children;
-					
-					// TODO - fix the getline naming issue
-					parent_header_file >> path >> name;
 
-					parent_header_file
-						>> completion_level
-						>> path_to_parent;
-	
-					std::string path_to_child;
-					while (parent_header_file >> path_to_child) {
-						if (path_to_child.empty() or path_to_child == " ") {
-							continue; // Skipping empty lines
-						}
-
-						paths_to_children.push_back(path_to_child);
-					}
+					path =
+						custom_string_actions::
+						delete_new_line_from_string
+						(custom_string_actions::get_line_from_string_file(header_file_string, 1));			
+					name =
+						custom_string_actions::
+						delete_new_line_from_string
+						(custom_string_actions::get_line_from_string_file(header_file_string, 2));	
+					completion_level =
+						std::stoi
+						(custom_string_actions::delete_new_line_from_string
+						 (custom_string_actions::get_line_from_string_file(header_file_string, 3)));
+					path_to_parent = 
+						custom_string_actions::
+						delete_new_line_from_string
+						(custom_string_actions::get_line_from_string_file(header_file_string, 4));
 					
-					HeaderBuilder header_builder;
+					std::string children_line = custom_string_actions::get_line_from_string_file(header_file_string, 5); 
+					custom_string_actions::delete_new_line_from_string(children_line);
+
+					std::vector<std::string> children_paths = custom_string_actions::divide_string_by_spaces(children_line);
+				
+				HeaderBuilder header_builder;
 					Header header = header_builder
 						.path_to_header(path)
 						.header_name(name)
 						.completion_level(completion_level)
 						.path_to_parent(path_to_parent)
-						.paths_to_children(paths_to_children)
+						.paths_to_children(children_paths)
 						.build();
 	
 					return header;
@@ -170,6 +180,8 @@ class Headers {
 					 std::map<std::string, Header> &new_headers, int depth = 1) {
 
 				 for (auto &path_to_child : paths_to_children) {
+					if (path_to_child.empty()) continue;
+
 					Header new_child = read_header(path_to_child);
 					new_headers[path_to_child] = new_child;
 					
@@ -179,6 +191,7 @@ class Headers {
 					headers_flat.push_back(new_header_to_render);
 
 					std::vector<std::string> new_paths_to_children = new_child.get_paths_to_children();
+
 					read_children_of_header(new_paths_to_children, new_headers, depth + 1);
 				 }
 			 }
@@ -194,12 +207,17 @@ class Headers {
 					
 					Header new_header = read_header(path_to_header);
 					new_headers[path_to_header] = new_header;
-					
+
 					HeaderFlat new_header_to_render;
 					new_header_to_render.header = new_header;
 					headers_flat.push_back(new_header_to_render);
 
 					std::vector<std::string> paths_to_children = new_header.get_paths_to_children();
+					
+					for (const auto &path : paths_to_children) {
+						std::cout << path << std::endl;
+					}
+
 					read_children_of_header(paths_to_children, new_headers);
 				}
 
