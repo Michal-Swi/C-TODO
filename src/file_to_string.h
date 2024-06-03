@@ -3,10 +3,10 @@
 
 // This header exists, because I hate (don't understand the behaviour of) getline.
 namespace std {
-	std::string file_to_string(const std::string &file_name) {
+	std::string file_to_string(const std::string &path_to_file) {
 		std::string string_file;		
 
-		std::ifstream file(file_name);
+		std::ifstream file(path_to_file);
 		char ch;
 
 		while (file.get(ch)) {
@@ -17,10 +17,10 @@ namespace std {
 	}
 
 	// Slow. Avoid using. 
-	std::string line_to_string(const std::string &file_name, const int &line) {
+	std::string line_to_string(const std::string &path_to_file, const int &line) {
 		std::string line_from_file;		
 
-		std::ifstream file(file_name);
+		std::ifstream file(path_to_file);
 		char ch;
 		int current_line = 1;
 
