@@ -7,7 +7,13 @@ namespace custom_string_actions {
 	std::string file_to_string(const std::string &path_to_file) {
 		std::string string_file;		
 
-		std::ifstream file(path_to_file);
+		std::fstream file;
+		try {
+			file.open(path_to_file, std::ios::in);
+		} catch (...) {
+			return "";
+		}
+			
 		char ch;
 
 		while (file.get(ch)) {
@@ -40,27 +46,6 @@ namespace custom_string_actions {
 		return ""; 
 	}
 
-	std::string get_line_from_string_file(const std::string &string_file, const int &line) {
-		std::string line_from_file_string;
-
-		int current_line = 1;
-		
-		int i = 0;
-		for (; i < string_file.length(); i++) {
-			if (current_line == line) {
-				for (; string_file[i] != '\n'; i++) {
-					line_from_file_string += string_file[i];
-				}
-
-				return line_from_file_string + '\n';
-			}
-
-			if (string_file[i] == '\n') current_line++;
-		}
-
-		return "";
-	}
-
 	std::string delete_new_line_from_string(const std::string &s) {
 		if (s.empty() or s == "") return "";
 
@@ -90,4 +75,27 @@ namespace custom_string_actions {
 
 		return divided_by_spaces;
 	}
+
+	std::string get_line_from_string_file(const std::string &string_file, const int &line) {
+		std::string line_from_file_string;
+
+		int current_line = 1;
+		
+		int i = 0;
+		for (; i < string_file.length(); i++) {
+			if (current_line == line) {
+				for (; i < string_file.length() and string_file[i] != '\n'; i++) {
+					line_from_file_string += string_file[i];
+				}
+
+				return line_from_file_string;
+			}
+
+			if (string_file[i] == '\n') current_line++;
+		}
+
+		return "";
+	}
+
+
 }

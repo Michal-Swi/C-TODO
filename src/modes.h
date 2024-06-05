@@ -75,7 +75,7 @@ class NormalMode : Modes {
 		getyx(stdscr, y, x);
 		move(y, 0);
 		
-		headers.change_colored_flat(true, y);
+		if (!headers.get_headers_flat().empty()) headers.change_colored_flat(true, y);
 		renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 		
 		while (true) {

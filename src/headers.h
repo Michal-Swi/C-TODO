@@ -2,9 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <ostream>
+#include <stdexcept>
 #include <string>
-#include <vector>
 
 class Header {
 	private:
@@ -135,9 +134,17 @@ class Headers {
 				headers_flat[y].header.set_header_name(new_header_flat_name);
 			}
 
+	public: void set_headers(std::map<std::string, Header> headers) {
+				this->headers = headers;
+			}
+
 	private: Header read_header(std::string &path_to_header) {
 					std::string full_path_to_header = "../data/" + path_to_header;
 					std::string header_file_string = custom_string_actions::file_to_string(full_path_to_header);
+
+					if (header_file_string.empty()) {
+						throw std::runtime_error("Header with: '" + path_to_header + "' path doesn't exist, fix your files");
+					}
 
 					std::string path, name, path_to_parent; 
 					int completion_level;
@@ -196,9 +203,10 @@ class Headers {
 				 }
 			 }
 
-	private: std::map<std::string, Header> read_headers() {
+	public: std::map<std::string, Header> read_headers() {
 				std::ifstream parent_headers_file("../data/parent_headers");	
-				
+
+				headers_flat.clear();
 				std::map<std::string, Header> new_headers;
 
 				std::string path_to_header;
@@ -211,13 +219,8 @@ class Headers {
 					HeaderFlat new_header_to_render;
 					new_header_to_render.header = new_header;
 					headers_flat.push_back(new_header_to_render);
-
-					std::vector<std::string> paths_to_children = new_header.get_paths_to_children();
 					
-					for (const auto &path : paths_to_children) {
-						std::cout << path << std::endl;
-					}
-
+					std::vector<std::string> paths_to_children = new_header.get_paths_to_children();
 					read_children_of_header(paths_to_children, new_headers);
 				}
 
@@ -229,7 +232,11 @@ class Headers {
 			}	
 
 	private: void save_header(Header &header) {
-				std::ofstream header_out("../data" + header.get_path_to_header());
+				std::ofstream header_out("../data/" + header.get_path_to_header());
+
+				std::fstream log;
+				log.open("log.log", std::ios::app);
+				log << header.get_header_name() << std::endl;
 
 				header_out
 					<< header.get_path_to_header() << '\n'
@@ -240,6 +247,8 @@ class Headers {
 				for (const auto &children_paths : header.get_paths_to_children()) {
 					header_out << children_paths << ' ';
 				}
+
+				header_out.close();
 			 }
 
 	public: void save_headers() {
@@ -287,11 +296,20 @@ class Headers {
 				return headers[path];
 			}
 
-	public: void insert_header(Header &header) {
+	private: void insert_header_flat(Header &header, const int &y) {
+				 HeaderFlat new_header_flat;
+				 new_header_flat.header = header;
+				 new_header_flat.depth = headers_flat[y].depth;
+
+				 headers_flat.insert(headers_flat.begin() + y, new_header_flat);
+			 }
+
+	public: void insert_header(Header &header, const int &y) {
 				headers[header.get_path_to_header()] = header;	
+				insert_header_flat(header, y);
 			}
 
-	public: void change_header(const Header &header, const std::string &path_to_self) {
+	public: void replace_header(const Header &header, const std::string &path_to_self) {
 				headers[path_to_self] = header;
 			}
 	

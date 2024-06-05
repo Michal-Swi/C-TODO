@@ -1,10 +1,7 @@
 #include <algorithm>
 #include <ncurses.h>
 #include <cstdlib> // For ExitCommand.
-#include <map>
-#include <fstream>
 #include <ratio>
-#include <string>
 #include <vector>
 #include <regex>
 #include <tuple>
@@ -12,6 +9,29 @@
 #include "definitions.h"
 
 class Command {
+	protected: std::string format_header_name(const std::string &header_name) {
+				std::string formated_header_name;
+				
+				for (const auto &ch : header_name) {
+					if (ch == ' ') {
+						formated_header_name += '_';
+					} else {
+						formated_header_name += ch;
+					}
+				}
+
+				return formated_header_name;
+			}
+	
+	protected: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
+				std::string formated_header_name = format_header_name(header_name);
+
+				if (path_to_parent == ".") return formated_header_name;
+
+				return path_to_parent + '.' + formated_header_name;
+			 }
+
+
 	public: void add_character_to_header
 			(std::string &header, char ch, bool &move_to_previous_position) {
 				int x, y;
@@ -104,6 +124,59 @@ class Command {
 			return "";
 		}
 
+
+	protected: std::string get_header_name() {
+			std::string header_name;
+			
+			int x, y;
+			getyx(stdscr, y, x);
+
+			int max_y, max_x;
+			getmaxyx(stdscr, max_y, max_x);
+			move(max_y - 1, 0);
+			clrtoeol();
+
+			char ch;
+			ch = getch();
+			
+			if (ch == ENTER_KEY) return ""; // If the header_name is just 
+											// new line we just exit
+			if (int(ch) != BACKSPACE_KEY) header_name = ch;
+			
+			print_line(header_name, false);
+
+			while (ch != ENTER_KEY) {
+				char ch = getch();
+				bool move_to_previous_position = false;
+				
+				switch(ch) {
+					case ENTER_KEY:
+						return header_name;
+					case BACKSPACE_KEY: 
+						delete_character(header_name);
+						print_line(header_name, false);
+						break;	
+					case ARROW_LEFT:
+						getyx(stdscr, y, x);
+		
+						move(y, x - 1);
+						break;
+					case ARROW_RIGHT:
+						getyx(stdscr, y, x);
+	
+						if (x >= header_name.length()) continue;
+	
+						move(y, x + 1);
+						break;
+				}
+
+				add_character_to_header(header_name, ch, move_to_previous_position);
+				print_line(header_name, move_to_previous_position);
+			}
+
+			return ""; // Done just for LSP purposes
+		 }
+
 	public: ~Command() {}
 
 	public: static bool edit_mode;
@@ -190,76 +263,6 @@ class EditModeCommand : public Command {
 };
 
 class AddNewHeaderCommand : public Command {
-	private: std::string get_header_name() {
-			std::string header_name;
-			
-			int x, y;
-			getyx(stdscr, y, x);
-
-			int max_y, max_x;
-			getmaxyx(stdscr, max_y, max_x);
-			move(max_y - 1, 0);
-			clrtoeol();
-
-			char ch;
-			ch = getch();
-			
-			if (ch == ENTER_KEY) return ""; // If the header_name is just 
-											// new line we just exit
-			if (int(ch) != BACKSPACE_KEY) header_name = ch;
-			
-			print_line(header_name, false);
-
-			while (ch != ENTER_KEY) {
-				char ch = getch();
-				bool move_to_previous_position = false;
-				
-				switch(ch) {
-					case ENTER_KEY:
-						return header_name;
-					case BACKSPACE_KEY: 
-						delete_character(header_name);
-						print_line(header_name, false);
-						break;	
-					case ARROW_LEFT:
-						getyx(stdscr, y, x);
-		
-						move(y, x - 1);
-						break;
-					case ARROW_RIGHT:
-						getyx(stdscr, y, x);
-	
-						if (x >= header_name.length()) continue;
-	
-						move(y, x + 1);
-						break;
-				}
-
-				add_character_to_header(header_name, ch, move_to_previous_position);
-				print_line(header_name, move_to_previous_position);
-			}
-
-			return ""; // Done just for LSP purposes
-		 }
-	
-	private: std::string format_header_name(const std::string &header_name) {
-				std::string formated_header_name;
-				
-				for (const auto &ch : header_name) {
-					if (ch == ' ') {
-						formated_header_name += '_';
-					} else {
-						formated_header_name += ch;
-					}
-				}
-
-				return formated_header_name;
-			 }
-
-	private: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
-				return path_to_parent + '.' + format_header_name(header_name);	
-			 }
-
 	public: void initialize_command() override {
 			std::string header_name = get_header_name();
 			if (header_name == "") return;
@@ -278,6 +281,30 @@ class AddNewHeaderCommand : public Command {
 				.paths_to_children({}) // New headers cant't have children yet 
 				.build();
 
-			headers.insert_header(new_header);
+			headers.insert_header(new_header, current_y);
 		}
+};
+
+class AddNewHeaderHereCommand : public Command {
+	public: void initialize_command() override {
+				int x, y;
+				getyx(stdscr, y, x);
+				
+				Header current_header = headers.get_header_flat(y);
+
+				std::string new_header_name = get_header_name();
+
+			
+				HeaderBuilder new_header_builder;
+				Header new_header = new_header_builder
+					.path_to_header(create_path_to_self(new_header_name, current_header.get_path_to_parent()))
+					.header_name(new_header_name)
+					.completion_level(0)
+					.path_to_parent(current_header.get_path_to_parent())
+					.paths_to_children({})
+					.build();
+			
+				headers.insert_header(new_header, y);
+				headers.save_headers();
+			}
 };

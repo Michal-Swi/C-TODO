@@ -26,5 +26,6 @@ class KeyLayout {
 			key_layout["qu"] = new ExitCommand();
 			key_layout["a"] = new AddNewHeaderCommand();
 			key_layout[":"] = new EditModeCommand();
+			key_layout["ah"] = new AddNewHeaderHereCommand();
 		}	
 };
