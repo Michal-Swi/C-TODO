@@ -39,7 +39,9 @@ class Header {
 			}
 	
 	public: void set_completion_level(const int &completion_level) {
-				this->completion_level = completion_level;
+				if (completion_level < 0) this->completion_level = 0;
+				else if (completion_level > 2) this->completion_level = 2;
+				else this->completion_level = completion_level;
 			}
 	
 	public: int get_completion_level() {
@@ -234,10 +236,6 @@ class Headers {
 	private: void save_header(Header &header) {
 				std::ofstream header_out("../data/" + header.get_path_to_header());
 
-				std::fstream log;
-				log.open("log.log", std::ios::app);
-				log << header.get_header_name() << std::endl;
-
 				header_out
 					<< header.get_path_to_header() << '\n'
 					<< header.get_header_name() << '\n' 
@@ -328,6 +326,18 @@ class Headers {
 	public: void change_colored_flat(const bool &colored, const int &y) {
 				headers_flat[y].header.set_colored(colored);
 				headers[headers_flat[y].header.get_path_to_header()].set_colored(colored);
+			}
+
+	public: void add_child_to_header(const std::string &path_to_header, const std::string &path_to_child, const int &y) {
+				headers[path_to_header].insert_path_to_child(path_to_child);	
+				headers_flat[y].header.insert_path_to_child(path_to_child);
+			}
+
+	public: void change_completion_level(const std::string &path, const int &y, const int &amount) {
+				int completion_level = headers[path].get_completion_level() + amount;
+
+				headers_flat[y].header.set_completion_level(completion_level);	
+				headers[path].set_completion_level(completion_level);
 			}
 };
 

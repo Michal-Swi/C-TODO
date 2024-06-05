@@ -27,5 +27,9 @@ class KeyLayout {
 			key_layout["a"] = new AddNewHeaderCommand();
 			key_layout[":"] = new EditModeCommand();
 			key_layout["ah"] = new AddNewHeaderHereCommand();
+			key_layout["c"] = new ChangeCompletionLevelDownCommand();
+			key_layout["v"] = new ChangeCompletionLevelUpCommand();
 		}	
 };
+
+KeyLayout keys;

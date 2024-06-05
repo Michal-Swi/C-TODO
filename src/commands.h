@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <cstdlib> // For ExitCommand.
 #include <ratio>
+#include <string>
 #include <vector>
 #include <regex>
 #include <tuple>
@@ -293,7 +294,6 @@ class AddNewHeaderHereCommand : public Command {
 				Header current_header = headers.get_header_flat(y);
 
 				std::string new_header_name = get_header_name();
-
 			
 				HeaderBuilder new_header_builder;
 				Header new_header = new_header_builder
@@ -303,8 +303,33 @@ class AddNewHeaderHereCommand : public Command {
 					.path_to_parent(current_header.get_path_to_parent())
 					.paths_to_children({})
 					.build();
-			
+				
+				if (new_header.get_path_to_parent() != ".") {
+					headers.add_child_to_header(new_header.get_path_to_parent(), new_header.get_path_to_header(), y);
+				}
+
 				headers.insert_header(new_header, y);
-				headers.save_headers();
 			}
+};
+
+class ChangeCompletionLevelUpCommand : public Command {
+	public: void initialize_command() override {
+		int y, x;
+		getyx(stdscr, y, x);
+		
+		std::string path = headers.get_header_flat(y).get_path_to_header();
+
+		headers.change_completion_level(path, y, 1);
+	}
+};
+
+class ChangeCompletionLevelDownCommand : public Command {
+	public: void initialize_command() override {
+		int y, x;
+		getyx(stdscr, y, x);
+
+		std::string path = headers.get_header_flat(y).get_path_to_header();
+
+		headers.change_completion_level(path, y, -1);
+	}
 };

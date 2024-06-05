@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include <ncurses.h>
+#include <string>
 
 enum Directions {
 	Left = 0,
@@ -93,6 +94,11 @@ class NormalMode : Modes {
 					headers.change_colored_flat(false, y);
 					Command::edit_mode = true;
 					return;
+				default:
+					std::string command;
+					command += key_pressed;
+					keys.execute_command(command);	
+					break;
 			}
 				
 			renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 
