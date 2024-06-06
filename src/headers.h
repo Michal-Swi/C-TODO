@@ -301,6 +301,37 @@ class Headers {
 
 				 headers_flat.insert(headers_flat.begin() + y, new_header_flat);
 			 }
+	
+	private: void read_children_of_header(Header &header, int depth = 1) {
+				for (auto &path : header.get_paths_to_children()) {
+					if (path.empty()) continue;
+					if (headers.count(path) <= 0) {
+						throw std::runtime_error("Header: " + path + " Is outdated! Fix files!");
+					}
+
+					HeaderFlat new_header_flat;
+					new_header_flat.header = headers[path];
+					new_header_flat.depth = depth;
+
+					headers_flat.push_back(new_header_flat);
+					read_children_of_header(new_header_flat.header, depth + 1);
+				}
+			 }
+
+	public: void generate_headers_flat() {
+				 headers_flat.clear();
+
+				 for (auto &[path, header] : headers) {
+					 if (header.get_path_to_parent() != ".") continue;
+
+					HeaderFlat new_header_flat;
+					new_header_flat.header = header;
+
+					headers_flat.push_back(new_header_flat);
+
+					read_children_of_header(header);	
+				 }
+			 }
 
 	public: void insert_header(Header &header, const int &y) {
 				headers[header.get_path_to_header()] = header;	

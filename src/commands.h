@@ -288,6 +288,8 @@ class AddNewHeaderCommand : public Command {
 
 class AddNewHeaderHereCommand : public Command {
 	public: void initialize_command() override {
+				if (headers.get_headers_flat().empty()) return;
+
 				int x, y;
 				getyx(stdscr, y, x);
 				
@@ -309,6 +311,36 @@ class AddNewHeaderHereCommand : public Command {
 				}
 
 				headers.insert_header(new_header, y);
+			}
+};
+
+class AddNewHeaderDownCommand : public Command {
+	public: void initialize_command() override {
+				if (headers.get_headers_flat().empty()) return;
+
+				int x, y;
+				getyx(stdscr, y, x);
+
+				Header header_above = headers.get_header_flat(y);
+				
+				std::string name = get_header_name(); 
+				std::string path_to_parent = header_above.get_path_to_header();
+				std::string path_to_self = create_path_to_self(name, path_to_parent);	
+				header_above.insert_path_to_child(path_to_self);
+
+				headers.replace_header(header_above, header_above.get_path_to_header());
+
+				HeaderBuilder new_header_builder; 
+				Header new_header = new_header_builder
+					.header_name(name)
+					.path_to_parent(path_to_parent)
+					.path_to_header(path_to_self)
+					.completion_level(0)
+					.paths_to_children({})
+					.build();
+
+				headers.insert_header(new_header, y);
+				headers.generate_headers_flat();
 			}
 };
 
