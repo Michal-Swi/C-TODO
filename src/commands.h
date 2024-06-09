@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <fstream>
 #include <ncurses.h>
 #include <cstdlib> // For ExitCommand.
 #include <ratio>
@@ -340,6 +341,43 @@ class AddNewHeaderDownCommand : public Command {
 					.build();
 
 				headers.insert_header(new_header, y);
+				headers.generate_headers_flat();
+			}
+};
+
+class AddNewHeaderAboveCommand : public Command {
+	public: void initialize_command() override {
+				int x, y;
+				getyx(stdscr, y, x);
+				
+				std::string new_header_name = get_header_name();
+
+				Header current_header = headers.get_header_flat(y);
+
+				std::string old_path = current_header.get_path_to_header();
+				std::string new_header_path_to_parent = current_header.get_path_to_parent();
+				std::string new_header_path_to_self = create_path_to_self(new_header_name, new_header_path_to_parent);
+
+				current_header.set_path_to_parent(new_header_path_to_self);
+				current_header.set_path_to_header
+					(create_path_to_self(current_header.get_header_name(), new_header_path_to_self));
+
+				headers.change_header_path(old_path, current_header.get_path_to_header());
+				headers.replace_header(current_header, current_header.get_path_to_header());
+
+				std::vector<std::string> children = {current_header.get_path_to_header()};
+
+				HeaderBuilder new_header_builder;
+				Header new_header = new_header_builder
+					.header_name(new_header_name)
+					.path_to_header(new_header_path_to_self)
+					.path_to_parent(new_header_path_to_parent)
+					.completion_level(0)
+					.paths_to_children(children)
+					.build();
+
+				headers.push_header(new_header);
+				headers.update_paths_of_children(current_header, new_header_path_to_self);
 				headers.generate_headers_flat();
 			}
 };

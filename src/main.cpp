@@ -9,7 +9,7 @@ void main_loop() {
 	while (true) {
 		renderer.render_headers(Headers::get_headers_flat(), Command::get_current_command());	
 		
-		keys.execute_command("ab");
+		keys.execute_command("aa");
 
 		if (!Command::edit_mode) {
 			normal_mode.initialize_command();

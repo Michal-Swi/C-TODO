@@ -1,9 +1,11 @@
 #include "custom_string_actions.h"
+#include <csignal>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 class Header {
 	private:
@@ -322,7 +324,7 @@ class Headers {
 				 headers_flat.clear();
 
 				 for (auto &[path, header] : headers) {
-					 if (header.get_path_to_parent() != ".") continue;
+					if (header.get_path_to_parent() != ".") continue;
 
 					HeaderFlat new_header_flat;
 					new_header_flat.header = header;
@@ -336,6 +338,10 @@ class Headers {
 	public: void insert_header(Header &header, const int &y) {
 				headers[header.get_path_to_header()] = header;	
 				insert_header_flat(header, y);
+			}
+
+	public: void push_header(Header &header) {
+				headers[header.get_path_to_header()] = header;
 			}
 
 	public: void replace_header(const Header &header, const std::string &path_to_self) {
@@ -369,6 +375,53 @@ class Headers {
 
 				headers_flat[y].header.set_completion_level(completion_level);	
 				headers[path].set_completion_level(completion_level);
+			}
+
+	public: void change_header_path(const std::string &old_path, const std::string &new_path) {
+				Header temp = headers[old_path];
+				headers.erase(old_path);
+				temp.set_path_to_header(new_path);
+				headers[new_path] = temp;
+			}	
+
+	public: void update_paths_of_children(Header &header, const std::string &part_of_path) {
+				std::vector<std::string> new_paths_to_children;
+
+				for (auto &path_to_child : header.get_paths_to_children()) {
+					if (path_to_child.empty() or path_to_child == " ") continue;
+
+					Header child_header = headers[path_to_child];
+
+					std::string new_path_to_self = part_of_path + '.' + child_header.get_path_to_header();
+					std::string new_path_to_parent = header.get_path_to_header();
+
+					change_header_path(path_to_child, new_path_to_self);
+					headers[new_path_to_self].set_path_to_parent(new_path_to_parent);
+
+					update_paths_of_children(headers[new_path_to_self], part_of_path);
+								
+					new_paths_to_children.push_back(new_path_to_self);		
+				}	
+
+				headers[header.get_path_to_header()].insert_paths_to_children(new_paths_to_children);
+			}
+
+	public: void log_headers_flat() {
+				std::fstream log;
+				log.open("log.log", std::ios::app);
+				
+				for (auto &header_flat : headers_flat) {
+					log << header_flat.header.get_path_to_header() << std::endl;
+				}
+			}
+
+	public: void log_headers() {
+				std::fstream log;
+				log.open("log.log", std::ios::app);
+
+				for (auto &[path, header] : headers) {
+					log << path << ' ' << header.get_path_to_parent() << std::endl;
+				}
 			}
 };
 
