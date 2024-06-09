@@ -353,10 +353,15 @@ class AddNewHeaderAboveCommand : public Command {
 				std::string new_header_name = get_header_name();
 
 				Header current_header = headers.get_header_flat(y);
-
+				
 				std::string old_path = current_header.get_path_to_header();
 				std::string new_header_path_to_parent = current_header.get_path_to_parent();
 				std::string new_header_path_to_self = create_path_to_self(new_header_name, new_header_path_to_parent);
+				
+				if (current_header.get_path_to_parent() != ".") { 
+					headers.update_header_path_to_child
+						(current_header.get_path_to_parent(), current_header.get_path_to_header(), new_header_path_to_self);
+				}
 
 				current_header.set_path_to_parent(new_header_path_to_self);
 				current_header.set_path_to_header
@@ -378,6 +383,7 @@ class AddNewHeaderAboveCommand : public Command {
 
 				headers.push_header(new_header);
 				headers.update_paths_of_children(current_header, new_header_path_to_self);
+				// headers.log_headers();	
 				headers.generate_headers_flat();
 			}
 };

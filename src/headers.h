@@ -307,9 +307,7 @@ class Headers {
 	private: void read_children_of_header(Header &header, int depth = 1) {
 				for (auto &path : header.get_paths_to_children()) {
 					if (path.empty()) continue;
-					if (headers.count(path) <= 0) {
-						throw std::runtime_error("Header: " + path + " Is outdated! Fix files!");
-					}
+					if (headers.count(path) <= 0) continue; 
 
 					HeaderFlat new_header_flat;
 					new_header_flat.header = headers[path];
@@ -405,6 +403,22 @@ class Headers {
 
 				headers[header.get_path_to_header()].insert_paths_to_children(new_paths_to_children);
 			}
+	
+	public: void update_header_path_to_child
+			(const std::string &path_to_header, const std::string &old_path_to_child, const std::string &new_path_to_child) {
+				
+				std::vector<std::string> new_paths_to_children;
+				for (const auto &path : headers[path_to_header].get_paths_to_children()) { 
+					if (path != old_path_to_child) {
+						new_paths_to_children.push_back(path);
+						continue;
+					}
+
+					new_paths_to_children.push_back(new_path_to_child);
+				}
+
+				headers[path_to_header].insert_paths_to_children(new_paths_to_children);
+			}
 
 	public: void log_headers_flat() {
 				std::fstream log;
@@ -420,7 +434,16 @@ class Headers {
 				log.open("log.log", std::ios::app);
 
 				for (auto &[path, header] : headers) {
-					log << path << ' ' << header.get_path_to_parent() << std::endl;
+					log << header.get_header_name() << ':' << std::endl;
+					log << "Path: " << path << std::endl;
+					log << "Path to parent: " << header.get_path_to_parent() << std::endl;
+					log << "Paths to children: " << std::endl;
+
+					for (auto &path : header.get_paths_to_children()) {
+						log << path << std::endl;
+					}
+
+					log << std::endl << std::endl;
 				}
 			}
 };
