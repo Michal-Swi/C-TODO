@@ -1,6 +1,5 @@
 #include "custom_string_actions.h"
 #include <csignal>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -308,7 +307,9 @@ class Headers {
 	private: void read_children_of_header(Header &header, int depth = 1) {
 				for (auto &path : header.get_paths_to_children()) {
 					if (path.empty()) continue;
-					if (headers.count(path) <= 0) continue; 
+					if (headers.count(path) <= 0) {
+						throw std::runtime_error("Header: " + path + " Is outdated! Fix files!");
+					}
 
 					HeaderFlat new_header_flat;
 					new_header_flat.header = headers[path];
@@ -404,49 +405,6 @@ class Headers {
 
 				headers[header.get_path_to_header()].insert_paths_to_children(new_paths_to_children);
 			}
-	
-	public: void update_header_path_to_child
-			(const std::string &path_to_header, const std::string &old_path_to_child, const std::string &new_path_to_child) {
-				
-				std::vector<std::string> new_paths_to_children;
-				for (const auto &path : headers[path_to_header].get_paths_to_children()) { 
-					if (path != old_path_to_child) {
-						new_paths_to_children.push_back(path);
-						continue;
-					}
-
-					new_paths_to_children.push_back(new_path_to_child);
-				}
-
-				headers[path_to_header].insert_paths_to_children(new_paths_to_children);
-			}
-
-	private: void delete_child(const std::string &path_to_child) {
-				std::filesystem::remove("../data/" + path_to_child);
-				headers.erase(path_to_child);
-			 }
-	
-	// Deletes header and its children
-	public: void delete_header(Header &header) {
-				std::string path_to_parent = header.get_path_to_parent();
-				
-				for (const auto &child : header.get_paths_to_children()) {
-					delete_child(child);
-				}
-
-				delete_child(header.get_path_to_header());
-				
-				if (path_to_parent == ".") return;
-
-				std::vector<std::string> new_parent_paths_to_children;
-				for (const auto &parent_path_to_child : headers[path_to_parent].get_paths_to_children()) {
-					if (parent_path_to_child != header.get_path_to_header()) {
-						new_parent_paths_to_children.push_back(parent_path_to_child);
-					}
-				}
-
-				headers[path_to_parent].insert_paths_to_children(new_parent_paths_to_children);
-			}
 
 	public: void log_headers_flat() {
 				std::fstream log;
@@ -463,15 +421,13 @@ class Headers {
 
 				for (auto &[path, header] : headers) {
 					log << header.get_header_name() << ':' << std::endl;
-					log << "Path: " << path << std::endl;
+					log << "Path " << path << std::endl;
 					log << "Path to parent: " << header.get_path_to_parent() << std::endl;
 					log << "Paths to children: " << std::endl;
 
 					for (auto &path : header.get_paths_to_children()) {
 						log << path << std::endl;
 					}
-
-					log << std::endl << std::endl;
 				}
 			}
 };

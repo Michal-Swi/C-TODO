@@ -409,3 +409,15 @@ class ChangeCompletionLevelDownCommand : public Command {
 		headers.change_completion_level(path, y, -1);
 	}
 };
+
+class DeleteHeaderCommand : public Command {
+	public: void initialize_command() override {
+				int y, x;
+				getyx(stdscr, y, x);
+
+				Header header = headers.get_header_flat(y);
+
+				headers.delete_header(header);
+				headers.generate_headers_flat();
+			}
+};

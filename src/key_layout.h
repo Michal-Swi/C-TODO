@@ -31,6 +31,7 @@ class KeyLayout {
 			key_layout["v"] = new ChangeCompletionLevelUpCommand();
 			key_layout["ab"] = new AddNewHeaderDownCommand();
 			key_layout["aa"] = new AddNewHeaderAboveCommand();
+			key_layout["d"] = new DeleteHeaderCommand();
 		}	
 };
 
