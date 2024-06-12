@@ -1,5 +1,6 @@
-./src/log.log
-./src/a.out
-./src/TODO
-./src/test.cpp
-./data/*
+src/log.log
+src/a.out
+src/TODO
+src/test.cpp
+data/*
+data_cp

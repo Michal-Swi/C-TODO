@@ -74,6 +74,8 @@ class NormalMode : Modes {
 		
 		int y, x;
 		getyx(stdscr, y, x);
+		y = 0;	
+	
 		move(y, 0);
 		
 		if (!headers.get_headers_flat().empty()) headers.change_colored_flat(true, y);
@@ -98,7 +100,7 @@ class NormalMode : Modes {
 					std::string command;
 					command += key_pressed;
 					keys.execute_command(command);	
-					break;
+					return;
 			}
 				
 			renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 

@@ -420,19 +420,34 @@ class Headers {
 
 				headers[path_to_header].insert_paths_to_children(new_paths_to_children);
 			}
-
+	
 	private: void delete_child(const std::string &path_to_child) {
-				std::filesystem::remove("../data/" + path_to_child);
+				if (path_to_child == " " or path_to_child.empty()) return;
+
+				try {
+					std::filesystem::remove("../data/" + path_to_child);
+				} catch (const std::filesystem::filesystem_error& err) {
+					std::fstream log;
+					log.open("log.log", std::ios::app);
+					log << path_to_child << std::endl << err.what() << std::endl;
+				}
+
 				headers.erase(path_to_child);
 			 }
 	
+	private: void reccursive_child_killing(Header &header) {
+				 for (const auto &child_path : header.get_paths_to_children()) {
+					 Header child_header = headers[child_path];
+					 reccursive_child_killing(child_header);
+					 delete_child(child_header.get_path_to_header());
+				 }
+			 }
+
 	// Deletes header and its children
 	public: void delete_header(Header &header) {
 				std::string path_to_parent = header.get_path_to_parent();
 				
-				for (const auto &child : header.get_paths_to_children()) {
-					delete_child(child);
-				}
+				reccursive_child_killing(header);
 
 				delete_child(header.get_path_to_header());
 				
