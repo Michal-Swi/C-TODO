@@ -116,6 +116,7 @@ struct HeaderFlat {
 };
 
 class Headers {
+	private: std::vector<std::string> headers_to_delete;
 	private: std::map<std::string, Header> headers;
 	private: static std::vector<HeaderFlat> headers_flat;
 	
@@ -235,6 +236,16 @@ class Headers {
 	public: Headers() {
 				headers = read_headers();
 			}	
+	
+	private: void delete_headers_to_delete() {
+				 for (const auto &path : headers_to_delete) {
+					 try {
+						std::filesystem::remove("../data/" + path);
+					 } catch (const std::filesystem::filesystem_error &err) {
+						// Path might be corrupted, continue deleting. 
+					 }
+				 }
+			 }
 
 	private: void save_header(Header &header) {
 				std::ofstream header_out("../data/" + header.get_path_to_header());
@@ -262,6 +273,8 @@ class Headers {
 
 					save_header(header);	
 				}
+
+				delete_headers_to_delete();
 			}
 	
 	public: void add_new_header(const std::string &path_to_self, const std::string &name, 
@@ -420,47 +433,38 @@ class Headers {
 
 				headers[path_to_header].insert_paths_to_children(new_paths_to_children);
 			}
-	
-	private: void delete_child(const std::string &path_to_child) {
-				if (path_to_child == " " or path_to_child.empty()) return;
 
-				try {
-					std::filesystem::remove("../data/" + path_to_child);
-				} catch (const std::filesystem::filesystem_error& err) {
-					std::fstream log;
-					log.open("log.log", std::ios::app);
-					log << path_to_child << std::endl << err.what() << std::endl;
-				}
+	private: void delete_child_path
+			 (const std::string &path_to_header, const std::string &path_to_child) {
 
-				headers.erase(path_to_child);
-			 }
-	
-	private: void reccursive_child_killing(Header &header) {
-				 for (const auto &child_path : header.get_paths_to_children()) {
-					 Header child_header = headers[child_path];
-					 reccursive_child_killing(child_header);
-					 delete_child(child_header.get_path_to_header());
+				 std::vector<std::string> new_children;
+				 for (auto &path : headers[path_to_header].get_paths_to_children()) {
+					 if (path == path_to_child) continue;
+					 new_children.push_back(path);
 				 }
+
+				 headers[path_to_header].insert_paths_to_children(new_children);
+			 }
+			
+	private: void delete_child(const std::string &path_to_child) {
+				 headers.erase(path_to_child);
+				 headers_to_delete.push_back(path_to_child);
 			 }
 
-	// Deletes header and its children
+	private: void recursive_child_deletion(const std::string &path_to_child) {
+				 for (auto &path : headers[path_to_child].get_paths_to_children()) {
+					 recursive_child_deletion(path);
+				 }
+
+				 delete_child(path_to_child);
+			 }
+
 	public: void delete_header(Header &header) {
 				std::string path_to_parent = header.get_path_to_parent();
+							
+				delete_child_path(path_to_parent, header.get_path_to_header());	
 				
-				reccursive_child_killing(header);
-
-				delete_child(header.get_path_to_header());
-				
-				if (path_to_parent == ".") return;
-
-				std::vector<std::string> new_parent_paths_to_children;
-				for (const auto &parent_path_to_child : headers[path_to_parent].get_paths_to_children()) {
-					if (parent_path_to_child != header.get_path_to_header()) {
-						new_parent_paths_to_children.push_back(parent_path_to_child);
-					}
-				}
-
-				headers[path_to_parent].insert_paths_to_children(new_parent_paths_to_children);
+				recursive_child_deletion(header.get_path_to_header());	
 			}
 
 	public: void log_headers_flat() {
@@ -468,8 +472,10 @@ class Headers {
 				log.open("log.log", std::ios::app);
 				
 				for (auto &header_flat : headers_flat) {
-					log << header_flat.header.get_path_to_header() << std::endl;
+					log << "Path: " << header_flat.header.get_path_to_header() << std::endl;
 				}
+
+				if (headers_flat.empty()) log << "No headers flat" << std::endl;
 			}
 
 	public: void log_headers() {
@@ -487,6 +493,10 @@ class Headers {
 					}
 
 					log << std::endl << std::endl;
+				}
+
+				if (headers.empty()) {
+					log << "No headers" << std::endl;
 				}
 			}
 };

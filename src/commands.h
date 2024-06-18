@@ -412,12 +412,15 @@ class ChangeCompletionLevelDownCommand : public Command {
 
 class DeleteHeaderCommand : public Command {
 	public: void initialize_command() override {
+				if (headers.get_headers_flat().empty()) return;
+
 				int y, x;
 				getyx(stdscr, y, x);
 
 				Header header = headers.get_header_flat(y);
-
+				
 				headers.delete_header(header);
 				headers.generate_headers_flat();
+				// headers.log_headers_flat();
 			}
 };
