@@ -23,15 +23,10 @@ class KeyLayout {
 	public: KeyLayout() {
 			// TODO - user defined config
 			
-			key_layout["qu"] = new ExitCommand();
 			key_layout["a"] = new AddNewHeaderCommand();
-			key_layout[":"] = new EditModeCommand();
-			key_layout["ah"] = new AddNewHeaderHereCommand();
-			key_layout["c"] = new ChangeCompletionLevelDownCommand();
-			key_layout["v"] = new ChangeCompletionLevelUpCommand();
-			key_layout["ab"] = new AddNewHeaderDownCommand();
-			key_layout["aa"] = new AddNewHeaderAboveCommand();
 			key_layout["d"] = new DeleteHeaderCommand();
+			key_layout["c"] = new ChangeCompletionLevelCommand();
+			key_layout["e"] = new ExitCommand();
 		}	
 };
 

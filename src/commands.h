@@ -228,19 +228,36 @@ class Command {
 bool Command::edit_mode = false;
 std::string Command::current_command = "";
 
-class ExitingCommands : public Command {
-	public: void initialize_command() override {
-				char ch = getch();
-			}
-};
-
-
 class ExitCommand : public Command {
 	public: void initialize_command() override {
-			headers.save_headers();
-			endwin();
-			exit(0);
-		}
+				char specifier = getch();
+
+				std::string current_command = Command::get_current_command();
+				current_command += specifier;
+				Command::set_current_command(current_command);
+
+				switch (specifier) {
+					case 's':
+						save();
+						break;
+					case '!':
+						force();
+						break;
+					default:
+						Command::set_current_command("Invalid Command!");
+				}
+			}
+
+	private: void save() {
+				headers.save_headers();
+				endwin();
+				exit(0);
+		}	
+
+	private: void force() {
+				 endwin();
+				 exit(0);
+			 }
 };
 
 class EditModeCommand : public Command {
@@ -266,29 +283,29 @@ class EditModeCommand : public Command {
 
 class AddNewHeaderCommand : public Command {
 	public: void initialize_command() override {
-			std::string header_name = get_header_name();
-			if (header_name == "") return;
+				char ch = getch();
+
+				std::string current_command = Command::get_current_command();
+				current_command += ch;
+
+				Command::set_current_command(current_command);
+
+				switch (ch) {
+					case 'h':
+						here();
+						break;
+					case 'b':
+						below();
+						break;
+					case 'a':
+						above();
+						break;
+					default:
+						Command::set_current_command("Invalid Command!");
+				}
+			}	
 			
-			int current_y, current_x;
-			getyx(stdscr, current_y, current_x);
-
-			Header neigbouring_header = headers.get_header_flat(current_y);
-			
-			HeaderBuilder new_header_builder;
-			Header new_header = new_header_builder
-				.header_name(header_name)
-				.path_to_header(create_path_to_self(header_name, neigbouring_header.get_path_to_parent()))
-				.completion_level(0) // New header can't have a different completion level
-				.path_to_parent(neigbouring_header.get_path_to_parent())
-				.paths_to_children({}) // New headers cant't have children yet 
-				.build();
-
-			headers.insert_header(new_header, current_y);
-		}
-};
-
-class AddNewHeaderHereCommand : public Command {
-	public: void initialize_command() override {
+	private: void here() {
 				if (headers.get_headers_flat().empty()) return;
 
 				int x, y;
@@ -313,10 +330,8 @@ class AddNewHeaderHereCommand : public Command {
 
 				headers.insert_header(new_header, y);
 			}
-};
 
-class AddNewHeaderDownCommand : public Command {
-	public: void initialize_command() override {
+	private: void below() {
 				if (headers.get_headers_flat().empty()) return;
 
 				int x, y;
@@ -343,10 +358,8 @@ class AddNewHeaderDownCommand : public Command {
 				headers.insert_header(new_header, y);
 				headers.generate_headers_flat();
 			}
-};
-
-class AddNewHeaderAboveCommand : public Command {
-	public: void initialize_command() override {
+			 
+	public: void above() {
 				int x, y;
 				getyx(stdscr, y, x);
 				
@@ -386,28 +399,47 @@ class AddNewHeaderAboveCommand : public Command {
 				// headers.log_headers();	
 				headers.generate_headers_flat();
 			}
+	
 };
 
-class ChangeCompletionLevelUpCommand : public Command {
+class ChangeCompletionLevelCommand : public Command {
 	public: void initialize_command() override {
-		int y, x;
-		getyx(stdscr, y, x);
-		
-		std::string path = headers.get_header_flat(y).get_path_to_header();
+			char specifier = getch();
 
-		headers.change_completion_level(path, y, 1);
+			std::string current_command = Command::get_current_command();
+			current_command += specifier;
+			Command::set_current_command(current_command);
+
+			switch (specifier) {
+				case 'u':
+					up();
+					break;
+				case 'd':
+					down();
+					break;
+				default:
+					Command::set_current_command("Invalid Command!");
+			}
+		}	
+
+	private: void up() {
+			int y, x;
+			getyx(stdscr, y, x);
+			
+			std::string path = headers.get_header_flat(y).get_path_to_header();
+	
+			headers.change_completion_level(path, y, 1);
 	}
-};
 
-class ChangeCompletionLevelDownCommand : public Command {
-	public: void initialize_command() override {
-		int y, x;
-		getyx(stdscr, y, x);
+	private: void down() {
+			int y, x;
+			getyx(stdscr, y, x);
+	
+			std::string path = headers.get_header_flat(y).get_path_to_header();
 
-		std::string path = headers.get_header_flat(y).get_path_to_header();
-
-		headers.change_completion_level(path, y, -1);
+			headers.change_completion_level(path, y, -1);
 	}
+
 };
 
 class DeleteHeaderCommand : public Command {
