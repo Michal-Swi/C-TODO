@@ -467,6 +467,12 @@ class Headers {
 				recursive_child_deletion(header.get_path_to_header());	
 			}
 
+	public: int find_header_flat(const std::string &path_to_header) {
+				int y = 0;
+				for (; headers_flat[y].header.get_path_to_header() != path_to_header; y++);
+				return y;
+			}
+
 	public: void log_headers_flat() {
 				std::fstream log;
 				log.open("log.log", std::ios::app);

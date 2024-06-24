@@ -82,6 +82,7 @@ class NormalMode : Modes {
 		renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 		
 		while (true) {
+			getyx(stdscr, y, x);
 			char key_pressed = getch();
 
 			switch (key_pressed) {
@@ -100,7 +101,7 @@ class NormalMode : Modes {
 					std::string command;
 					command += key_pressed;
 					keys.execute_command(command);	
-					return;
+					Command::set_current_command("");
 			}
 				
 			renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 

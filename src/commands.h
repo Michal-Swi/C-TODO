@@ -329,6 +329,12 @@ class AddNewHeaderCommand : public Command {
 				}
 
 				headers.insert_header(new_header, y);
+				headers.generate_headers_flat();
+
+				y = headers.find_header_flat(new_header.get_path_to_header());
+				headers.change_colored_flat(true, y);
+				headers.change_colored_flat(false, headers.find_header_flat(current_header.get_path_to_header()));
+				move(y, x);
 			}
 
 	private: void below() {
@@ -357,6 +363,11 @@ class AddNewHeaderCommand : public Command {
 
 				headers.insert_header(new_header, y);
 				headers.generate_headers_flat();
+
+				y = headers.find_header_flat(path_to_self);
+				move(y, x);
+				headers.change_colored_flat(true, y);
+				headers.change_colored_flat(false, y - 1);
 			}
 			 
 	public: void above() {
@@ -398,8 +409,12 @@ class AddNewHeaderCommand : public Command {
 				headers.update_paths_of_children(current_header, new_header_path_to_self);
 				// headers.log_headers();	
 				headers.generate_headers_flat();
-			}
-	
+
+				y = headers.find_header_flat(new_header_path_to_self);
+				move(y, x);
+				headers.change_colored_flat(true, y);
+				headers.change_colored_flat(false, y + 1);
+			}	
 };
 
 class ChangeCompletionLevelCommand : public Command {
@@ -456,3 +471,4 @@ class DeleteHeaderCommand : public Command {
 				// headers.log_headers_flat();
 			}
 };
+

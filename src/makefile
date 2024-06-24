@@ -3,3 +3,4 @@ make:
 	rm log.log
 	g++ -o TODO main.cpp -lncurses -g
 	./TODO
+
