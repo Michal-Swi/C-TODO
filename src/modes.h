@@ -208,9 +208,10 @@ class EditMode : Modes {
 				return formated_header_name;
 			 }
 
-	private: void handle_empty_header(const int &y) {
-				 if (!headers.get_header_flat(y).get_header_name().empty()) return;
-				 keys.execute_command("d");
+	private: void handle_empty_header(Header header) {
+				 if (!header.get_header_name().empty()) return;
+				 headers.delete_header(header);
+				 headers.generate_headers_flat();
 			 }
 
 	public: void initialize_command() override {
@@ -243,7 +244,7 @@ class EditMode : Modes {
 								(headers.get_header_flat(y).get_header_name());
 
 							headers.change_header_name_flat(new_header_name, y);
-							handle_empty_header(y);
+							handle_empty_header(headers.get_header_flat(y));
 							break;
 							}
 						case ':':
