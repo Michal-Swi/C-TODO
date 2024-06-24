@@ -458,6 +458,18 @@ class ChangeCompletionLevelCommand : public Command {
 };
 
 class DeleteHeaderCommand : public Command {
+	private: int make_y_in_bounds(const int &y) {
+				 int headers_size = headers.get_headers_flat().size();
+
+				 if (y > 0 and y < headers_size) return y;
+
+				 if (headers_size - y < y + 1) {
+					 return headers_size - 1;
+				 }
+
+				 return 0;
+			 }
+
 	public: void initialize_command() override {
 				if (headers.get_headers_flat().empty()) return;
 
@@ -469,6 +481,12 @@ class DeleteHeaderCommand : public Command {
 				headers.delete_header(header);
 				headers.generate_headers_flat();
 				// headers.log_headers_flat();
+				
+				if (headers.get_headers_flat().empty()) return;
+
+				y = make_y_in_bounds(y);
+				headers.change_colored_flat(true, y);
+				move(y, x);
 			}
 };
 
