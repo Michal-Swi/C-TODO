@@ -418,24 +418,14 @@ class AddNewHeaderCommand : public Command {
 };
 
 class ChangeCompletionLevelCommand : public Command {
-	public: void initialize_command() override {
-			char specifier = getch();
+	private: void down() {
+			int y, x;
+			getyx(stdscr, y, x);
+	
+			std::string path = headers.get_header_flat(y).get_path_to_header();
 
-			std::string current_command = Command::get_current_command();
-			current_command += specifier;
-			Command::set_current_command(current_command);
-
-			switch (specifier) {
-				case 'u':
-					up();
-					break;
-				case 'd':
-					down();
-					break;
-				default:
-					Command::set_current_command("Invalid Command!");
-			}
-		}	
+			headers.change_completion_level(path, y, -1);
+	}
 
 	private: void up() {
 			int y, x;
@@ -446,15 +436,27 @@ class ChangeCompletionLevelCommand : public Command {
 			headers.change_completion_level(path, y, 1);
 	}
 
-	private: void down() {
-			int y, x;
-			getyx(stdscr, y, x);
-	
-			std::string path = headers.get_header_flat(y).get_path_to_header();
+	public: void initialize_command() override {
+			char specifier = getch();
+			
+			/*
+			std::fstream log("log.log", std::ios::app);
+			log << Command::get_current_command() << std::endl 
+				<< specifier << std::endl;
+			*/
 
-			headers.change_completion_level(path, y, -1);
-	}
-
+			switch (specifier) {
+				case 'u':
+					up();
+					break;
+				case 'd':
+					down();
+					break;
+				default:
+					Command::set_current_command("Invalid Command!");
+					return;
+			}
+		}	
 };
 
 class DeleteHeaderCommand : public Command {

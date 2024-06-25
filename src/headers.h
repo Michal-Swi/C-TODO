@@ -119,7 +119,7 @@ class Headers {
 	private: std::vector<std::string> headers_to_delete;
 	private: std::map<std::string, Header> headers;
 	private: static std::vector<HeaderFlat> headers_flat;
-	
+
 	public: static std::vector<HeaderFlat> get_headers_flat() {
 				return headers_flat;
 			}

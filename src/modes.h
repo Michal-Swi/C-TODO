@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <fstream>
 #include <ncurses.h>
 #include <string>
 
@@ -101,10 +102,10 @@ class NormalMode : Modes {
 					std::string command;
 					command += key_pressed;
 					keys.execute_command(command);	
-					Command::set_current_command("");
 			}
 				
 			renderer.render_headers(headers.get_headers_flat(), Command::get_current_command()); 
+			Command::set_current_command("");
 		}
 	}
 };
@@ -256,6 +257,7 @@ class EditMode : Modes {
 							headers.change_header_name_flat(new_header_name, y);
 							break;
 					}
+
 					renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 				}
 			}

@@ -1,4 +1,5 @@
 #include "commands.h"
+#include <fstream>
 
 class KeyLayout {
 	public: std::map<std::string, Command*> key_layout; 
@@ -15,9 +16,11 @@ class KeyLayout {
 
 				Command::set_current_command("Invalid command!");
 
-			} else {
-				key_layout[command]->initialize_command();	
+				move(current_y, current_x);
+				return;
 			}
+
+			key_layout[command]->initialize_command();	
 		}
 
 	public: KeyLayout() {
@@ -28,6 +31,13 @@ class KeyLayout {
 			key_layout["c"] = new ChangeCompletionLevelCommand();
 			key_layout["e"] = new ExitCommand();
 		}	
+
+	public: ~KeyLayout() {
+				for (auto &[key, command] : key_layout) {
+					delete command;
+				}
+			}
+
 };
 
 KeyLayout keys;
