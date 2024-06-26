@@ -7,7 +7,8 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-#include "key_layout.h"
+#include "headers.h"
+#include "definitions.h"
 
 class CompletionLevels {
 	private: static std::unordered_map<int, std::string> completion_levels;

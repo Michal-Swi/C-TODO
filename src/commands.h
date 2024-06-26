@@ -7,8 +7,7 @@
 #include <vector>
 #include <regex>
 #include <tuple>
-#include "headers.h"
-#include "definitions.h"
+#include "renderer.h"
 
 class Command {
 	protected: std::string format_header_name(const std::string &header_name) {
@@ -71,112 +70,51 @@ class Command {
 				move(y, x - 1);
 			}
 
-	public: void print_line(std::string str, bool move_to_previous_position) {
-				int y, x;
-				getyx(stdscr, y, x);
-				move(y, x - 1);
-				clrtoeol();
-				refresh();
-				move(y, 0);
-				printw(str.c_str());
-				refresh();
+	protected: std::string get_header_name() {
+			std::string header_name;
 
-				if (move_to_previous_position) move(y, x + 1);
-			 }
-	public: std::string get_command() {
-			std::string command;
+			curs_set(1);
 
-			char ch;
-
-			int current_x, current_y;
-			getyx(stdscr, current_y, current_x);
+			int x, y;
+			getyx(stdscr, y, x);
 			
 			int max_x, max_y;
 			getmaxyx(stdscr, max_y, max_x);
+			max_x = 0;
 
-			move(max_y - 1, 0);
+			move(max_y - 1, max_x);
 
-			ch = getch();
-			clrtoeol();
-	
-			if (ch == ENTER_KEY) {
-				move(current_y + 1, 0);
-				refresh();
+			char key_pressed;
+			while (key_pressed != ENTER_KEY) {
+				key_pressed = getch();
 
-				return "Invalid command!"; 
-			}
-			
-			addch(ch);
-			command += ch;
-
-			while (ch != ENTER_KEY) {
-				ch = getch();
-				
-				if (ch == ENTER_KEY) {
-					move(current_y + 1, 0);
-					return command;
-				}
-				
-				command += ch;
-
-				addch(ch);
-				refresh();
-			}
-			
-			return "";
-		}
-
-
-	protected: std::string get_header_name() {
-			std::string header_name;
-			
-			int x, y;
-			getyx(stdscr, y, x);
-
-			int max_y, max_x;
-			getmaxyx(stdscr, max_y, max_x);
-			move(max_y - 1, 0);
-			clrtoeol();
-
-			char ch;
-			ch = getch();
-			
-			if (ch == ENTER_KEY) return ""; // If the header_name is just 
-											// new line we just exit
-			if (int(ch) != BACKSPACE_KEY) header_name = ch;
-			
-			print_line(header_name, false);
-
-			while (ch != ENTER_KEY) {
-				char ch = getch();
-				bool move_to_previous_position = false;
-				
-				switch(ch) {
+				switch (key_pressed) {
 					case ENTER_KEY:
+						curs_set(0);
 						return header_name;
-					case BACKSPACE_KEY: 
+					case BACKSPACE_KEY:
+						if (header_name.empty()) break;
 						delete_character(header_name);
-						print_line(header_name, false);
-						break;	
+						max_x--;
+						break;
 					case ARROW_LEFT:
-						getyx(stdscr, y, x);
-		
-						move(y, x - 1);
+						if (max_x == 0) break;
+						max_x--;
 						break;
 					case ARROW_RIGHT:
-						getyx(stdscr, y, x);
-	
-						if (x >= header_name.length()) continue;
-	
-						move(y, x + 1);
+						if (max_x >= header_name.length()) break;
+						max_x++;
 						break;
+					default:
+						header_name += key_pressed;
+						max_x++;
+						
 				}
 
-				add_character_to_header(header_name, ch, move_to_previous_position);
-				print_line(header_name, move_to_previous_position);
+				move(max_y - 1, 0);
+				renderer.render_headers(headers.get_headers_flat(), header_name);
+				move(max_y - 1, max_x);
 			}
-
-			return ""; // Done just for LSP purposes
 		 }
 
 	public: ~Command() {}
@@ -200,29 +138,6 @@ class Command {
 	public: virtual void initialize_command() {
 			return; // Method for overriding.
 		}
-
-	private: std::vector<std::pair<std::string, std::string>> 
-			 get_config_definitions() {
-			std::ifstream config_data("../data/config");	
-
-			// Given a file structured;
-			// key: definition
-			// this regex will mach the 
-			// key and the definition
-			std::regex config_key_regex("^([^:]+):(.*)$");
-			
-			std::vector<std::pair<std::string, std::string>> definitions;
-			while (!config_data.eof()) {
-				std::string config_data_line;
-				config_data >> config_data_line;
-				
-				std::smatch matched_key;
-				std::regex_match(config_data_line, matched_key, config_key_regex);
-				definitions.push_back({matched_key[0], matched_key[1]});
-			}
-			
-			return definitions;
-		 }
 };
 
 bool Command::edit_mode = false;
@@ -314,6 +229,7 @@ class AddNewHeaderCommand : public Command {
 				Header current_header = headers.get_header_flat(y);
 
 				std::string new_header_name = get_header_name();
+				if (new_header_name.empty()) return;
 			
 				HeaderBuilder new_header_builder;
 				Header new_header = new_header_builder
@@ -346,6 +262,8 @@ class AddNewHeaderCommand : public Command {
 				Header header_above = headers.get_header_flat(y);
 				
 				std::string name = get_header_name(); 
+				if (name.empty()) return;
+
 				std::string path_to_parent = header_above.get_path_to_header();
 				std::string path_to_self = create_path_to_self(name, path_to_parent);	
 				header_above.insert_path_to_child(path_to_self);
@@ -375,6 +293,7 @@ class AddNewHeaderCommand : public Command {
 				getyx(stdscr, y, x);
 				
 				std::string new_header_name = get_header_name();
+				if (new_header_name.empty()) return;
 
 				Header current_header = headers.get_header_flat(y);
 				
