@@ -1,7 +1,8 @@
 # C-TODO
 C-TODO is a TODO list written in C++, supporting multi-level headers and soon 
-commands, that are supposed to make it easier to use. Every header supports 
-three levels of completion - [ ], [-] and [X].
+bash commands, that are supposed to make it easier to use. Every header supports 
+three levels of completion - [ ], [-] and [X]. There is normal mode, that listens
+to commands and edit mode, that lets you freerly edit every header.
 ![example](example.png)
 
 ## Installation
@@ -66,6 +67,14 @@ s (with saving)
 ```
 ! (without saving)
 ```
+
+### Edit mode
+You can switch between edit and normal mode, with
+```
+:
+```
+when in normal mode you delete every character from a header, you completly delete it
+and all of its children, it's not a bug it's a feature. 
 
 ## Config
 The libary I used to parse .toml files - [here](https://marzer.github.io/tomlplusplus/)
