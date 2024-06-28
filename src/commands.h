@@ -229,7 +229,11 @@ class AddNewHeaderCommand : public Command {
 				Header current_header = headers.get_header_flat(y);
 
 				std::string new_header_name = get_header_name();
-				if (new_header_name.empty()) return;
+				if (new_header_name.empty()) {
+					move(y, x); // No clue why this move is necessary, but 
+								// without it, the code throws seg fault
+					return;
+				}
 			
 				HeaderBuilder new_header_builder;
 				Header new_header = new_header_builder
@@ -262,7 +266,10 @@ class AddNewHeaderCommand : public Command {
 				Header header_above = headers.get_header_flat(y);
 				
 				std::string name = get_header_name(); 
-				if (name.empty()) return;
+				if (name.empty()) {
+					move(y, x);
+					return;
+				}
 
 				std::string path_to_parent = header_above.get_path_to_header();
 				std::string path_to_self = create_path_to_self(name, path_to_parent);	
@@ -285,7 +292,7 @@ class AddNewHeaderCommand : public Command {
 				y = headers.find_header_flat(path_to_self);
 				move(y, x);
 				headers.change_colored_flat(true, y);
-				headers.change_colored_flat(false, y - 1);
+				headers.change_colored_flat(false, headers.find_header_flat(path_to_parent));
 			}
 			 
 	public: void above() {
@@ -293,7 +300,10 @@ class AddNewHeaderCommand : public Command {
 				getyx(stdscr, y, x);
 				
 				std::string new_header_name = get_header_name();
-				if (new_header_name.empty()) return;
+				if (new_header_name.empty()) {
+					move(y, x);
+					return;
+				}
 
 				Header current_header = headers.get_header_flat(y);
 				

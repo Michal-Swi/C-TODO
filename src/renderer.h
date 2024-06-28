@@ -88,7 +88,7 @@ class Renderer {
 			move(y, x);
 		}
 
-		move(getmaxy(stdscr) - 1, 0);	
+		move(getmaxy(stdscr) - 1, current_x);	
 		printw(current_command.c_str());
 		refresh();
 		move(current_y, current_x);
