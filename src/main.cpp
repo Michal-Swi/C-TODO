@@ -30,7 +30,7 @@ int main() {
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
 
 	attron(COLOR_PAIR(1));
-
+	
 	main_loop();
 	
 	endwin();

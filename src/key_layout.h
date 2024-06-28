@@ -1,9 +1,12 @@
 #include "commands.h"
+#include <cstdlib>
 #include <fstream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
+#include "toml.hpp"
 
 class KeyLayout {
 	public: std::map<std::string, Command*> key_layout; 
@@ -26,36 +29,55 @@ class KeyLayout {
 
 			key_layout[command]->initialize_command();	
 		}
+	
+	private: std::string get_home_path() {
+				 std::string home_path;
 
-	private: std::vector<std::pair<std::string, std::string>>
-			 get_config_definitions() {
-			std::ifstream config_data("~/.config/C-TODO/config");	
-
-			// Given a file structured;
-			// key: definition
-			// this regex will mach the
-			// key and the definition
-			std::regex config_key_regex("^([^:]+):(.*)$");
-			
-			std::vector<std::pair<std::string, std::string>> definitions;
-			while (!config_data.eof()) {
-				std::string config_data_line;
-				config_data >> config_data_line;
+				 try {
+					 home_path = std::getenv("HOME");
+				 } catch (...) {
+					 throw std::runtime_error("HOME enviroment variable not set.");
+				 }
 				
-				std::smatch matched_key;
-				std::regex_match(config_data_line, matched_key, config_key_regex);
-				definitions.push_back({matched_key[0], matched_key[1]});
-			}
-			
-			return definitions;
-		 }
+				 return home_path;
+			 }
 
-	private: void override_key_layout(const std::vector<std::pair<std::string, std::string>> &config,
-				std::map<std::string, Command*> &key_layout) {
-					
-				for (auto &[definition, key] : config) {
+	private: void read_config() {
+				toml::table config;
+				
+				std::string path = get_home_path() + "/.config/C-TODO/config.toml";
 
+				try {
+					config = toml::parse_file(path);
+				} catch (const toml::parse_error &err) {
+					// No config to read or some error, either way we can just exit
+
+					std::fstream log("log.log", std::ios::app);
+					log << err.what() << std::endl;
+					log.close();
+
+					return;
 				}
+
+				// I believe hard coding it is the way, I just don't see how to do this
+				// in a different way.
+
+				std::string add_new_header_key = 
+					config["AddNewHeaderCommand"].value_or("a");
+
+				std::string delete_header_key = 
+					config["DeleteHeaderCommand"].value_or("d");
+
+				std::string change_completion_key = 
+					config["ChangeCompletionLevelCommand"].value_or("c");
+
+				std::string exit_key = 
+					config["ExitCommand"].value_or("e");
+
+				key_layout[add_new_header_key] = new AddNewHeaderCommand();
+				key_layout[delete_header_key] = new DeleteHeaderCommand();
+				key_layout[change_completion_key] = new ChangeCompletionLevelCommand();
+				key_layout[exit_key] = new ExitCommand();
 			 }
 
 	public: KeyLayout() {
@@ -64,7 +86,7 @@ class KeyLayout {
 			key_layout["c"] = new ChangeCompletionLevelCommand();
 			key_layout["e"] = new ExitCommand();
 
-			// std::vector<std::pair<std::string, std::string>> config = get_config_definitions();
+			read_config();
 		}	
 	
 	public: ~KeyLayout() {
@@ -72,7 +94,6 @@ class KeyLayout {
 					delete command;
 				}
 			}
-
 };
 
 KeyLayout keys;

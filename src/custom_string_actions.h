@@ -1,5 +1,6 @@
 #include <string>
 #include <fstream>
+#include <utility>
 #include <vector>
 
 // This header exists, because I hate (don't understand the behaviour of) getline.
@@ -96,6 +97,5 @@ namespace custom_string_actions {
 
 		return "";
 	}
-
 
 }

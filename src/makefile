@@ -4,3 +4,8 @@ make:
 	g++ -o TODO main.cpp -lncurses -g -Wno-return-type 
 	./TODO
 
+lines:
+	mv TODO ..
+	wc -l *
+	mv ../TODO .
+
