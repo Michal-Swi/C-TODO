@@ -20,6 +20,6 @@ struct ExitBind {
 	static char force;
 	static char save;
 };
-char ExitBind::force = 'f';
+char ExitBind::force = '!';
 char ExitBind::save = 's';
 
