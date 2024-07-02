@@ -5,7 +5,9 @@ make:
 	./TODO
 
 lines:
+	mv toml.hpp ..
 	mv TODO ..
 	wc -l *
 	mv ../TODO .
+	mv ../toml.hpp .
 

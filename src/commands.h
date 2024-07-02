@@ -1,13 +1,16 @@
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <ncurses.h>
 #include <cstdlib> // For ExitCommand.
 #include <ratio>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <regex>
 #include <tuple>
 #include "renderer.h"
+#include "key_binds.h"
 
 class Command {
 	protected: std::string format_header_name(const std::string &header_name) {
@@ -144,6 +147,16 @@ bool Command::edit_mode = false;
 std::string Command::current_command = "";
 
 class ExitCommand : public Command {
+	private: std::unordered_map<char, std::function<void()>>
+				exit_command_functions;
+
+	public: ExitCommand() {
+				exit_command_functions[ExitBind::force] = std::bind(&ExitCommand::force, this);
+
+				exit_command_functions[ExitBind::save] =
+					std::bind(&ExitCommand::save, this);
+			}
+
 	public: void initialize_command() override {
 				char specifier = getch();
 
@@ -151,16 +164,9 @@ class ExitCommand : public Command {
 				current_command += specifier;
 				Command::set_current_command(current_command);
 
-				switch (specifier) {
-					case 's':
-						save();
-						break;
-					case '!':
-						force();
-						break;
-					default:
-						Command::set_current_command("Invalid Command!");
-				}
+				if (exit_command_functions.count(specifier) <= 0) return;	
+
+				exit_command_functions[specifier]();
 			}
 
 	private: void save() {
@@ -197,27 +203,26 @@ class EditModeCommand : public Command {
 };
 
 class AddNewHeaderCommand : public Command {
+	private: std::unordered_map<char, std::function<void()>>
+			 add_new_header_functions;
+
+	public: AddNewHeaderCommand() {
+				add_new_header_functions[AddNewHeaderBind::above] = 
+					std::bind(&AddNewHeaderCommand::above, this);
+
+				add_new_header_functions[AddNewHeaderBind::below] =
+					std::bind(&AddNewHeaderCommand::below, this);
+
+				add_new_header_functions[AddNewHeaderBind::here] = 
+					std::bind(&AddNewHeaderCommand::here, this);
+			}
+
 	public: void initialize_command() override {
-				char ch = getch();
+				char specifier = getch();
+	
+				if (add_new_header_functions.count(specifier) <= 0) return;
 
-				std::string current_command = Command::get_current_command();
-				current_command += ch;
-
-				Command::set_current_command(current_command);
-
-				switch (ch) {
-					case 'h':
-						here();
-						break;
-					case 'b':
-						below();
-						break;
-					case 'a':
-						above();
-						break;
-					default:
-						Command::set_current_command("Invalid Command!");
-				}
+				add_new_header_functions[specifier]();
 			}	
 			
 	private: void here() {
@@ -365,26 +370,23 @@ class ChangeCompletionLevelCommand : public Command {
 			headers.change_completion_level(path, y, 1);
 	}
 
+	private: std::unordered_map<char, std::function<void()>> 
+			 completion_level_functions;
+
+	public: ChangeCompletionLevelCommand() {
+				completion_level_functions[ChangeCompletionLevelBind::up] = 
+					std::bind(&ChangeCompletionLevelCommand::up, this);
+
+				completion_level_functions[ChangeCompletionLevelBind::down] = 
+					std::bind(&ChangeCompletionLevelCommand::down, this);
+			}
+
 	public: void initialize_command() override {
 			char specifier = getch();
 			
-			/*
-			std::fstream log("log.log", std::ios::app);
-			log << Command::get_current_command() << std::endl 
-				<< specifier << std::endl;
-			*/
+			if (completion_level_functions.count(specifier) <= 0) return;
 
-			switch (specifier) {
-				case 'u':
-					up();
-					break;
-				case 'd':
-					down();
-					break;
-				default:
-					Command::set_current_command("Invalid Command!");
-					return;
-			}
+			completion_level_functions[specifier]();
 		}	
 };
 
