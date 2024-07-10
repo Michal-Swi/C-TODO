@@ -2,5 +2,5 @@ src/log.log
 src/a.out
 src/TODO
 src/test.cpp
-data/*
+data/
 data_cp

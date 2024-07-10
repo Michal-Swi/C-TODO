@@ -1,5 +1,6 @@
 #include "custom_string_actions.h"
 #include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -144,8 +145,21 @@ class Headers {
 				this->headers = headers;
 			}
 
+	private: std::string get_path_to_data() {
+				std::string path_to_home; 
+
+				try {
+					path_to_home = std::getenv("HOME");
+				} catch (...) {
+					return "";
+				}
+
+				return path_to_home + "/.C-TODO/data/";
+			 }
+
+
 	private: Header read_header(std::string &path_to_header) {
-					std::string full_path_to_header = "../data/" + path_to_header;
+					std::string full_path_to_header = get_path_to_data() + path_to_header;
 					std::string header_file_string = custom_string_actions::file_to_string(full_path_to_header);
 
 					if (header_file_string.empty()) {
@@ -210,7 +224,7 @@ class Headers {
 			 }
 
 	public: std::map<std::string, Header> read_headers() {
-				std::ifstream parent_headers_file("../data/parent_headers");	
+				std::ifstream parent_headers_file(get_path_to_data() + "parent_headers");	
 
 				headers_flat.clear();
 				std::map<std::string, Header> new_headers;
@@ -240,7 +254,7 @@ class Headers {
 	private: void delete_headers_to_delete() {
 				 for (const auto &path : headers_to_delete) {
 					 try {
-						std::filesystem::remove("../data/" + path);
+						std::filesystem::remove(get_path_to_data() + path);
 					 } catch (const std::filesystem::filesystem_error &err) {
 						// Path might be corrupted, continue deleting. 
 					 }
@@ -248,7 +262,7 @@ class Headers {
 			 }
 
 	private: void save_header(Header &header) {
-				std::ofstream header_out("../data/" + header.get_path_to_header());
+				std::ofstream header_out(get_path_to_data() + header.get_path_to_header());
 
 				header_out
 					<< header.get_path_to_header() << '\n'
@@ -264,7 +278,7 @@ class Headers {
 			 }
 
 	public: void save_headers() {
-				std::ofstream parent_headers("../data/parent_headers");
+				std::ofstream parent_headers(get_path_to_data() + "parent_headers");
 
 				for (auto &[path, header]: headers) {
 					if (header.get_path_to_parent() == ".") { // Is a parent header

@@ -51,6 +51,8 @@ class Renderer {
 	public: void render_headers(std::vector<HeaderFlat> headers_to_render, 
 					const std::string &current_command) {
 		
+		headers.log_headers();
+
 
 		if (headers_to_render.empty()) {
 			no_headers();	
