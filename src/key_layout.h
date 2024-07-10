@@ -74,11 +74,36 @@ class KeyLayout {
 				std::string exit_key = 
 					config["ExitCommand"].value_or("e");
 
+
 				key_layout[add_new_header_key] = new AddNewHeaderCommand();
 				key_layout[delete_header_key] = new DeleteHeaderCommand();
 				key_layout[change_completion_key] = new ChangeCompletionLevelCommand();
 				key_layout[exit_key] = new ExitCommand();
-			 }
+				
+				AddNewHeaderBind::above =
+					config["AddNewHeader"]["above"].value_or("a")[0];
+				AddNewHeaderBind::below =
+					config["AddNewHeader"]["below"].value_or("b")[0];
+				AddNewHeaderBind::here =
+					config["AddNewHeader"]["here"].value_or("h")[0];
+				
+				ChangeCompletionLevelBind::down =
+					config["ChangeCompletionLevel"]["down"].value_or("d")[0];
+				ChangeCompletionLevelBind::up =
+					config["ChangeCompletionLevel"]["up"].value_or("u")[0];
+
+				ExitBind::force =
+					config["ExitBind"]["force"].value_or("!")[0];
+				ExitBind::save = 
+					config["ExitBind"]["save"].value_or("s")[0];
+				
+				key_layout[add_new_header_key] -> 
+					read_config();
+				key_layout[change_completion_key] -> 
+					read_config();
+				key_layout[exit_key] -> 
+					read_config();
+			}
 
 	public: KeyLayout() {
 			key_layout["a"] = new AddNewHeaderCommand();

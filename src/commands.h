@@ -13,6 +13,11 @@
 #include "key_binds.h"
 
 class Command {
+	// For overriding
+	public: void virtual read_config() {
+				return;
+			}
+
 	protected: std::string format_header_name(const std::string &header_name) {
 				std::string formated_header_name;
 				
@@ -150,8 +155,9 @@ class ExitCommand : public Command {
 	private: std::unordered_map<char, std::function<void()>>
 				exit_command_functions;
 
-	public: ExitCommand() {
-				exit_command_functions[ExitBind::force] = std::bind(&ExitCommand::force, this);
+	public: void read_config() override {
+				exit_command_functions[ExitBind::force] = 
+					std::bind(&ExitCommand::force, this);
 
 				exit_command_functions[ExitBind::save] =
 					std::bind(&ExitCommand::save, this);
@@ -206,7 +212,7 @@ class AddNewHeaderCommand : public Command {
 	private: std::unordered_map<char, std::function<void()>>
 			 add_new_header_functions;
 
-	public: AddNewHeaderCommand() {
+	public: void read_config() override {
 				add_new_header_functions[AddNewHeaderBind::above] = 
 					std::bind(&AddNewHeaderCommand::above, this);
 
@@ -216,7 +222,7 @@ class AddNewHeaderCommand : public Command {
 				add_new_header_functions[AddNewHeaderBind::here] = 
 					std::bind(&AddNewHeaderCommand::here, this);
 			}
-
+	
 	public: void initialize_command() override {
 				char specifier = getch();
 	
@@ -373,7 +379,7 @@ class ChangeCompletionLevelCommand : public Command {
 	private: std::unordered_map<char, std::function<void()>> 
 			 completion_level_functions;
 
-	public: ChangeCompletionLevelCommand() {
+	public: void read_config() override {
 				completion_level_functions[ChangeCompletionLevelBind::up] = 
 					std::bind(&ChangeCompletionLevelCommand::up, this);
 
