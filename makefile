@@ -5,7 +5,12 @@ make:
 
 install:
 	@mkdir -p ~/.config/C-TODO
-	@touch ~/.config/C-TODO/config
+	@touch ~/.config/C-TODO/config.toml
 	@sudo mv ~/C-TODO/src/todo /usr/bin/
 	@mv ~/C-TODO ~/.C-TODO
+
+remove:
+	@rm -r ~/.config/C-TODO
+	@sudo rm /usr/bin/todo
+	@rm -r ~/.C-TODO
 
