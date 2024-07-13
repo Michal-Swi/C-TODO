@@ -28,6 +28,16 @@ class CompletionLevels {
 std::unordered_map<int, std::string> CompletionLevels::completion_levels;
 
 class Renderer {
+	public: void remove_last_line() {
+				 clear();
+				 int max_y;
+				 max_y = getmaxy(stdscr);
+
+				 move(max_y - 1, 0);
+				 refresh();
+				 clrtoeol();
+			 }
+
 	private: void no_headers() {
 				 clear();
 				 int max_y;
@@ -51,10 +61,7 @@ class Renderer {
 	public: void render_headers(std::vector<HeaderFlat> headers_to_render, 
 					const std::string &current_command) {
 		
-		headers.log_headers();
-
-
-		if (headers_to_render.empty()) {
+		if (headers_to_render.empty() and current_command.empty()) {
 			no_headers();	
 			return;
 		}
@@ -65,11 +72,6 @@ class Renderer {
 		move(current_y, current_x);
 
 		clear();
-
-		if (headers_to_render.empty()) {
-			printw("NO TASKS");
-			return;
-		}
 
 		int x = 0, y = 0;
 		move(y, x);

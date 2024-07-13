@@ -487,6 +487,22 @@ class Headers {
 				return y;
 			}
 
+	public: void add_initial_header(const std::string &name, const std::string &path) {
+				HeaderBuilder initial_header_builder;
+
+				Header initial_header = initial_header_builder
+					.header_name(name)
+					.path_to_header(path)
+					.paths_to_children({})
+					.path_to_parent(".")
+					.completion_level(0)
+					.colored(true)
+					.build();
+
+				headers[path] = initial_header;
+				generate_headers_flat();
+			}
+
 	public: void log_headers_flat() {
 				std::fstream log;
 				log.open("log.log", std::ios::app);

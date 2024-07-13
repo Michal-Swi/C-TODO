@@ -1,6 +1,5 @@
 make:
-	echo " " > log.log
-	rm log.log
+	rm -f log.log
 	g++ -o todo main.cpp -lncurses -g -Wno-return-type 
 	./todo
 

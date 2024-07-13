@@ -83,6 +83,8 @@ class NormalMode : Modes {
 		renderer.render_headers(headers.get_headers_flat(), Command::get_current_command());
 		
 		while (true) {
+			if (headers.get_headers_flat().empty()) return;
+
 			getyx(stdscr, y, x);
 			char key_pressed = getch();
 

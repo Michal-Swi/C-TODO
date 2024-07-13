@@ -32,7 +32,7 @@ class Command {
 				return formated_header_name;
 			}
 	
-	protected: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
+	public: std::string create_path_to_self(const std::string &header_name, const std::string &path_to_parent) {
 				std::string formated_header_name = format_header_name(header_name);
 
 				if (path_to_parent == ".") return formated_header_name;
@@ -78,7 +78,7 @@ class Command {
 				move(y, x - 1);
 			}
 
-	protected: std::string get_header_name() {
+	public: std::string get_header_name() {
 			std::string header_name;
 
 			curs_set(1);
@@ -307,6 +307,8 @@ class AddNewHeaderCommand : public Command {
 			}
 			 
 	public: void above() {
+				if (headers.get_headers_flat().empty()) return;
+
 				int x, y;
 				getyx(stdscr, y, x);
 				
