@@ -87,7 +87,7 @@ If you want to change the specification key, you make a label, and change the ke
 [AddNewHeader]
 up = "g"
 ```
-Unlike the normal command keys, making config for the specification keys, overwrites it.
+Unlike the normal command keys, making config for the specification keys, overwrites them.
 
 ## For forkers
 Don't.
