@@ -1,8 +1,8 @@
 # C-TODO
+![example](example.png)
 C-TODO is a blazingly fast, TODO list written in C++, supporting multi-level headers. 
 Every header has three levels of completion - [ ], [-] and [X]. There is normal mode, 
 that listens to commands and edit mode, that lets you freerly edit every header.
-![example](example.png)
 
 ## Installation
 Easiest way to install the project is to copy the repo
