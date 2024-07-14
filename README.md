@@ -15,6 +15,16 @@ sudo make install
 git clone https://github.com/Michal-Swi/C-TODO && cd C-TODO && sudo make install
 ```
 ## Usage
+After you
+```
+sudo make install
+```
+you can just 
+```
+todo
+```
+anywhere on your computer.
+
 Every command besides the delete one, works like this, the code waits for a key
 to be pressed, if the key is a command, the code waits in the command function 
 for specification key. 
