@@ -9,10 +9,10 @@ Easiest way to install the project is to copy the repo
 ```
 git clone https://github.com/Michal-Swi/C-TODO
 cd C-TODO
-sudo make install
+make install
 ```
 ```
-git clone https://github.com/Michal-Swi/C-TODO && cd C-TODO && sudo make install
+git clone https://github.com/Michal-Swi/C-TODO && cd C-TODO && make install
 ```
 ## Usage
 After you

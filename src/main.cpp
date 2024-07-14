@@ -1,5 +1,4 @@
 #include "modes.h"
-#include <fstream>
 #include <ncurses.h>
 #include <vector>
 
@@ -30,7 +29,7 @@ void main_loop() {
 	}
 }
 
-int main() {
+int main(int argc, char **argv) {
 	initscr();
 	keypad(stdscr, TRUE);
 	refresh();
